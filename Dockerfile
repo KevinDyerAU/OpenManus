@@ -1,35 +1,30 @@
 FROM python:3.12-slim
 
-# Set working directory
 WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    git \
-    curl \
-    build-essential \
+    git curl wget build-essential \
+    pkg-config libffi-dev libssl-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install uv for faster package management
-RUN pip install uv
+# Upgrade pip
+RUN pip install --upgrade pip setuptools wheel
 
-# Copy requirements and install Python dependencies
+# Copy and modify requirements
 COPY requirements.txt .
+RUN sed -i 's/crawl4ai>0.6.3,<0.7.dev0/crawl4ai==0.6.3/g' requirements.txt
+RUN sed -i 's/uv==/uv>=/g' requirements.txt || true
 
-# Install dependencies with pre-release support
-RUN uv pip install --system --prerelease=allow -r requirements.txt
+# Install dependencies one by one for better error visibility
+RUN pip install --no-cache-dir --pre -r requirements.txt
 
-# Install playwright browsers
-RUN playwright install --with-deps chromium
+# Install playwright
+RUN python -m playwright install chromium
+RUN python -m playwright install-deps chromium
 
-# Copy application code
 COPY . .
-
-# Create config directory if it doesn't exist
 RUN mkdir -p config
 
-# Expose port
 EXPOSE 8000
-
-# Command to run the application
 CMD ["python", "main.py"]
