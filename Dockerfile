@@ -1,13 +1,35 @@
 FROM python:3.12-slim
 
-WORKDIR /app/OpenManus
+# Set working directory
+WORKDIR /app
 
-RUN apt-get update && apt-get install -y --no-install-recommends git curl \
-    && rm -rf /var/lib/apt/lists/* \
-    && (command -v uv >/dev/null 2>&1 || pip install --no-cache-dir uv)
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
+# Install uv for faster package management
+RUN pip install uv
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+
+# Install dependencies with pre-release support
+RUN uv pip install --system --prerelease=allow -r requirements.txt
+
+# Install playwright browsers
+RUN playwright install --with-deps chromium
+
+# Copy application code
 COPY . .
 
-RUN uv pip install --system -r requirements.txt
+# Create config directory if it doesn't exist
+RUN mkdir -p config
 
-CMD ["bash"]
+# Expose port
+EXPOSE 8000
+
+# Command to run the application
+CMD ["python", "main.py"]
