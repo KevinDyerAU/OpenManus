@@ -1,0 +1,31 @@
+services:
+  - type: web
+    name: openmanus-api
+    env: docker
+    dockerfilePath: ./Dockerfile.render
+    plan: starter  # or 'standard' for production workloads
+    region: oregon  # choose region closest to your users
+    branch: main
+    buildCommand: ""  # Docker handles the build
+    startCommand: ""  # Docker handles the start
+    envVars:
+      - key: PORT
+        value: 8000
+      - key: HOST
+        value: 0.0.0.0
+      - key: WEB_BROWSER_API_KEY
+        sync: false  # Set this in Render dashboard
+      - key: OPENAI_API_KEY
+        sync: false  # Set this in Render dashboard
+      - key: ENVIRONMENT
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: CORS_ORIGINS
+        value: "*"  # Configure appropriately for production
+    healthCheckPath: /health
+    numInstances: 1  # Scale as needed
+    disk:
+      name: openmanus-data
+      mountPath: /app/data
+      sizeGB: 1
