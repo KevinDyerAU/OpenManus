@@ -1,0 +1,154 @@
+# OpenManus Production Dockerfile
+# Multi-stage build for optimized production deployment
+
+# ================================
+# Stage 1: Base Dependencies
+# ================================
+FROM python:3.11-slim as base
+
+# Set environment variables
+ENV PYTHONUNBUFFERED=1 \
+    PYTHONDONTWRITEBYTECODE=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    wget \
+    gnupg \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# ================================
+# Stage 2: Node.js for Frontend Build
+# ================================
+FROM node:20-slim as frontend-builder
+
+WORKDIR /app/frontend
+
+# Copy package files
+COPY openmanus-chat/package.json openmanus-chat/pnpm-lock.yaml ./
+
+# Install pnpm and dependencies
+RUN npm install -g pnpm && \
+    pnpm install --frozen-lockfile
+
+# Copy source code
+COPY openmanus-chat/ ./
+
+# Build frontend
+RUN pnpm run build
+
+# ================================
+# Stage 3: Python Dependencies
+# ================================
+FROM base as python-builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy requirements
+COPY requirements.txt requirements-prod.txt ./
+
+# Install Python dependencies
+RUN pip install --upgrade pip && \
+    pip install -r requirements-prod.txt
+
+# ================================
+# Stage 4: Browser Dependencies
+# ================================
+FROM base as browser-builder
+
+# Install Chrome dependencies
+RUN apt-get update && apt-get install -y \
+    wget \
+    gnupg \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Playwright
+RUN python -m pip install playwright && \
+    playwright install chromium
+
+# ================================
+# Stage 5: Production Image
+# ================================
+FROM base as production
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    # Chrome dependencies
+    libnss3 \
+    libatk-bridge2.0-0 \
+    libdrm2 \
+    libxkbcommon0 \
+    libxcomposite1 \
+    libxdamage1 \
+    libxrandr2 \
+    libgbm1 \
+    libxss1 \
+    libasound2 \
+    # Additional utilities
+    curl \
+    wget \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN groupadd -r openmanus && useradd -r -g openmanus openmanus
+
+# Set working directory
+WORKDIR /app
+
+# Copy virtual environment
+COPY --from=python-builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy browser setup
+COPY --from=browser-builder /root/.cache/ms-playwright /home/openmanus/.cache/ms-playwright
+
+# Copy application code
+COPY app/ ./app/
+COPY scripts/ ./scripts/
+COPY config/ ./config/
+
+# Copy built frontend
+COPY --from=frontend-builder /app/frontend/dist ./app/static/
+
+# Copy configuration files
+COPY docker-compose.prod.yml ./
+COPY .env.production ./
+
+# Create necessary directories
+RUN mkdir -p /app/logs /app/data /app/uploads /app/downloads && \
+    chown -R openmanus:openmanus /app /home/openmanus
+
+# Install Chrome for openmanus user
+USER openmanus
+RUN python -m playwright install chromium
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# Expose port
+EXPOSE 8000
+
+# Set user
+USER openmanus
+
+# Start command
+CMD ["uvicorn", "app.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "4"]
+

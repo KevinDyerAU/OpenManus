@@ -1,0 +1,307 @@
+# OpenManus Production Deployment on Render
+# Enhanced configuration with managed services and auto-scaling
+
+services:
+  # ================================
+  # Main Web Service
+  # ================================
+  - type: web
+    name: openmanus-api
+    runtime: docker
+    plan: standard  # $25/month - 2GB RAM, 1 CPU
+    region: oregon  # Choose based on your users' location
+    dockerfilePath: ./Dockerfile.production
+    dockerContext: .
+    
+    # Auto-scaling configuration
+    autoDeploy: true
+    numInstances: 2  # Start with 2 instances for high availability
+    
+    # Environment variables
+    envVars:
+      - key: APP_ENVIRONMENT
+        value: production
+      - key: API_HOST
+        value: 0.0.0.0
+      - key: API_PORT
+        value: 8000
+      - key: API_WORKERS
+        value: 4
+      - key: DATABASE_URL
+        fromDatabase:
+          name: openmanus-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: OPENROUTER_API_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: https://openmanus.onrender.com,https://www.openmanus.com
+      - key: SENTRY_DSN
+        sync: false  # Set manually if using Sentry
+      - key: ENABLE_METRICS
+        value: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: RATE_LIMIT
+        value: 100
+      - key: BROWSER_HEADLESS
+        value: true
+      - key: ENABLE_BROWSER_TOOLS
+        value: true
+      - key: ENABLE_FLOW_EXECUTION
+        value: true
+      - key: ENABLE_MCP_TOOLS
+        value: true
+    
+    # Health check
+    healthCheckPath: /health
+    
+    # Build command (if needed)
+    buildCommand: |
+      # Install frontend dependencies and build
+      cd openmanus-chat
+      npm install -g pnpm
+      pnpm install --frozen-lockfile
+      pnpm run build
+      cd ..
+      
+      # Install Python dependencies
+      pip install -r requirements-prod.txt
+      
+      # Install Playwright browsers
+      playwright install chromium
+    
+    # Start command
+    startCommand: uvicorn app.api.main:app --host 0.0.0.0 --port $PORT --workers 4
+    
+    # Disk storage
+    disk:
+      name: openmanus-storage
+      mountPath: /app/data
+      sizeGB: 10
+
+  # ================================
+  # Background Worker Service
+  # ================================
+  - type: worker
+    name: openmanus-worker
+    runtime: docker
+    plan: starter  # $7/month - 512MB RAM
+    region: oregon
+    dockerfilePath: ./Dockerfile.production
+    dockerContext: .
+    
+    # Environment variables (shared with web service)
+    envVars:
+      - key: APP_ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: openmanus-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: LOG_LEVEL
+        value: INFO
+      - key: BROWSER_HEADLESS
+        value: true
+    
+    # Start command for Celery worker
+    startCommand: celery -A app.tasks.celery worker --loglevel=info --concurrency=2
+    
+    # Disk storage
+    disk:
+      name: openmanus-worker-storage
+      mountPath: /app/data
+      sizeGB: 5
+
+  # ================================
+  # Scheduler Service
+  # ================================
+  - type: worker
+    name: openmanus-scheduler
+    runtime: docker
+    plan: starter  # $7/month - 512MB RAM
+    region: oregon
+    dockerfilePath: ./Dockerfile.production
+    dockerContext: .
+    
+    # Environment variables
+    envVars:
+      - key: APP_ENVIRONMENT
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: openmanus-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+      - key: LOG_LEVEL
+        value: INFO
+    
+    # Start command for Celery beat
+    startCommand: celery -A app.tasks.celery beat --loglevel=info
+
+# ================================
+# Databases
+# ================================
+databases:
+  - name: openmanus-postgres
+    databaseName: openmanus
+    user: openmanus
+    plan: standard  # $20/month - 1GB RAM, 10GB storage
+    region: oregon
+    
+    # Backup configuration
+    ipAllowList: []  # Allow all IPs (configure as needed)
+
+# ================================
+# Redis Cache
+# ================================
+services:
+  - type: redis
+    name: openmanus-redis
+    plan: standard  # $30/month - 1GB RAM
+    region: oregon
+    maxmemoryPolicy: allkeys-lru
+    
+    # Redis configuration
+    ipAllowList: []  # Allow all IPs (configure as needed)
+
+# ================================
+# Static Site (Optional - for frontend only)
+# ================================
+  - type: static
+    name: openmanus-frontend
+    buildCommand: |
+      cd openmanus-chat
+      npm install -g pnpm
+      pnpm install --frozen-lockfile
+      pnpm run build
+    publishPath: ./openmanus-chat/dist
+    
+    # Custom domain configuration
+    domains:
+      - www.openmanus.com
+      - openmanus.com
+    
+    # Environment variables for build
+    envVars:
+      - key: VITE_API_URL
+        value: https://openmanus-api.onrender.com
+      - key: VITE_WS_URL
+        value: wss://openmanus-api.onrender.com/ws/chat
+      - key: VITE_ENABLE_BROWSER_TOOLS
+        value: true
+      - key: VITE_ENABLE_FLOW_EXECUTION
+        value: true
+
+# ================================
+# Cron Jobs (Background Tasks)
+# ================================
+  - type: cron
+    name: openmanus-backup
+    schedule: "0 2 * * *"  # Daily at 2 AM
+    buildCommand: pip install -r requirements-prod.txt
+    startCommand: python scripts/backup.py
+    
+    # Environment variables
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: openmanus-postgres
+          property: connectionString
+      - key: BACKUP_S3_BUCKET
+        sync: false  # Set manually
+      - key: AWS_ACCESS_KEY_ID
+        sync: false  # Set manually
+      - key: AWS_SECRET_ACCESS_KEY
+        sync: false  # Set manually
+
+  - type: cron
+    name: openmanus-cleanup
+    schedule: "0 1 * * 0"  # Weekly on Sunday at 1 AM
+    buildCommand: pip install -r requirements-prod.txt
+    startCommand: python scripts/cleanup.py
+    
+    # Environment variables
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: openmanus-postgres
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: openmanus-redis
+          property: connectionString
+
+# ================================
+# Deployment Configuration
+# ================================
+
+# Total estimated cost: ~$89/month
+# - Web service (standard): $25/month x 2 instances = $50/month
+# - Worker service (starter): $7/month
+# - Scheduler service (starter): $7/month
+# - PostgreSQL (standard): $20/month
+# - Redis (standard): $30/month
+# - Static site: Free
+# - Cron jobs: Free
+
+# Features included:
+# - Auto-scaling web service with 2 instances
+# - Dedicated background worker for long-running tasks
+# - Scheduled task execution with cron jobs
+# - Managed PostgreSQL database with backups
+# - Managed Redis cache
+# - SSL certificates (automatic)
+# - Custom domain support
+# - Health checks and monitoring
+# - Automatic deployments from Git
+# - Environment variable management
+# - Disk storage for file uploads and data
+
+# Manual configuration required:
+# 1. Set OPENROUTER_API_KEY in Render dashboard
+# 2. Configure custom domain DNS
+# 3. Set up backup S3 credentials (optional)
+# 4. Configure Sentry DSN (optional)
+# 5. Set up monitoring alerts (optional)
+

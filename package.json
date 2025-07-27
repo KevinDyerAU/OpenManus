@@ -1,0 +1,26 @@
+{
+  "name": "openmanus",
+  "version": "1.0.0",
+  "description": "<p align=\"center\">   <img src=\"assets/logo.jpg\" width=\"200\"/> </p>",
+  "main": "index.js",
+  "directories": {
+    "example": "examples",
+    "test": "tests"
+  },
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/KevinDyerAU/OpenManus.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/KevinDyerAU/OpenManus/issues"
+  },
+  "homepage": "https://github.com/KevinDyerAU/OpenManus#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.54.1",
+    "@types/node": "^24.1.0"
+  }
+}
