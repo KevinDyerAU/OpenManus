@@ -119,3 +119,215 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Chat message improvements */
+.chat-message {
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.chat-message pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-x: auto;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.5rem;
+  border-radius: 0.375rem;
+  margin: 0.5rem 0;
+}
+
+.dark .chat-message pre {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.chat-message code {
+  background: rgba(0, 0, 0, 0.05);
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875em;
+}
+
+.dark .chat-message code {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* Responsive scroll area */
+.chat-scroll-area {
+  max-height: calc(80vh - 200px);
+  overflow-y: auto;
+}
+
+/* Better responsive layout */
+@media (max-width: 1024px) {
+  .chat-container {
+    grid-template-columns: 1fr;
+  }
+  
+  .chat-sidebar {
+    order: -1;
+  }
+}
+
+/* Improved message spacing */
+.message-content {
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+}
+
+.message-content p {
+  margin-bottom: 0.75rem;
+}
+
+.message-content p:last-child {
+  margin-bottom: 0;
+}
+
+/* Explicit Dark Mode Styles - Force visual changes */
+html.dark {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html.dark body {
+  background-color: #0f172a !important;
+  color: #f8fafc !important;
+}
+
+html.dark .bg-background {
+  background-color: #0f172a !important;
+}
+
+html.dark .text-foreground {
+  color: #f8fafc !important;
+}
+
+html.dark .bg-card {
+  background-color: #1e293b !important;
+}
+
+html.dark .text-card-foreground {
+  color: #f8fafc !important;
+}
+
+html.dark .bg-muted {
+  background-color: #334155 !important;
+}
+
+html.dark .text-muted-foreground {
+  color: #94a3b8 !important;
+}
+
+html.dark .border-border {
+  border-color: #334155 !important;
+}
+
+html.dark .bg-primary {
+  background-color: #3b82f6 !important;
+}
+
+html.dark .text-primary {
+  color: #3b82f6 !important;
+}
+
+html.dark .bg-secondary {
+  background-color: #374151 !important;
+}
+
+html.dark .text-secondary-foreground {
+  color: #f8fafc !important;
+}
+
+html.dark .bg-input {
+  background-color: #374151 !important;
+  color: #f8fafc !important;
+}
+
+html.dark .border {
+  border-color: #4b5563 !important;
+}
+
+html.dark .bg-accent {
+  background-color: #374151 !important;
+}
+
+html.dark .text-accent-foreground {
+  color: #f8fafc !important;
+}
+
+html.dark .message-content code {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  color: #f8fafc !important;
+}
+
+/* Light mode explicit styles */
+html:not(.dark) {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) body {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .bg-background {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .text-foreground {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .bg-card {
+  background-color: #ffffff !important;
+}
+
+html:not(.dark) .text-card-foreground {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .bg-muted {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .text-muted-foreground {
+  color: #64748b !important;
+}
+
+html:not(.dark) .border-border {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .bg-primary {
+  background-color: #3b82f6 !important;
+}
+
+html:not(.dark) .text-primary {
+  color: #3b82f6 !important;
+}
+
+html:not(.dark) .bg-secondary {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .text-secondary-foreground {
+  color: #0f172a !important;
+}
+
+html:not(.dark) .bg-input {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+html:not(.dark) .border {
+  border-color: #e2e8f0 !important;
+}
+
+html:not(.dark) .bg-accent {
+  background-color: #f1f5f9 !important;
+}
+
+html:not(.dark) .text-accent-foreground {
+  color: #0f172a !important;
+}
