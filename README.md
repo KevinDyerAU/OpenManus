@@ -120,7 +120,7 @@ pip install -r requirements.txt
 export OPENAI_API_KEY="your-api-key-here"
 
 # 3. Run your first agent
-python main.py --task "Analyze the homepage of example.com"
+python main.py --prompt "Analyze the homepage of example.com"
 ```
 
 **That's it!** OpenManus will automatically handle browser automation, web scraping, and analysis.
