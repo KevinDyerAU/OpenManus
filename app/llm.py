@@ -338,9 +338,17 @@ class LLM:
                     # Just remove the base64_image field and keep the text content
                     del message["base64_image"]
 
-                if "content" in message or "tool_calls" in message:
-                    formatted_messages.append(message)
-                # else: do not include the message
+                # Ensure message has content or tool_calls, or provide default content
+                if "content" not in message and "tool_calls" not in message:
+                    # For user/assistant messages without content, add default content
+                    if message["role"] in ["user", "assistant"]:
+                        message["content"] = "[No content provided]"
+                    elif message["role"] == "system":
+                        # System messages should have content
+                        if not message.get("content"):
+                            continue  # Skip empty system messages
+                
+                formatted_messages.append(message)
             else:
                 raise TypeError(f"Unsupported message type: {type(message)}")
 
@@ -348,6 +356,15 @@ class LLM:
         for msg in formatted_messages:
             if msg["role"] not in ROLE_VALUES:
                 raise ValueError(f"Invalid role: {msg['role']}")
+        
+        # Ensure at least one non-system message exists
+        non_system_messages = [msg for msg in formatted_messages if msg["role"] not in ["system", "developer"]]
+        if not non_system_messages:
+            # Add a default user message if none exist
+            formatted_messages.append({
+                "role": "user",
+                "content": "Please proceed with the task."
+            })
 
         return formatted_messages
 

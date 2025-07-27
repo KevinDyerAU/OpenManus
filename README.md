@@ -299,6 +299,76 @@ result = await agent.execute_with_callbacks(
 )
 ```
 
+### Web UI Client
+
+OpenManus includes a modern React-based web interface for interacting with the AI agent platform.
+
+**Features:**
+- **Real-time Chat Interface**: Interactive chat with AI agents
+- **Multi-Model Support**: Switch between different LLM providers and models
+- **Task Management**: Specialized interfaces for different task types
+- **Real-time Monitoring**: Live status updates and performance metrics
+- **Dark/Light Mode**: Customizable UI themes
+- **WebSocket Integration**: Real-time communication with the backend
+
+**Quick Start:**
+
+```bash
+# Install UI dependencies
+cd ui
+npm install
+
+# Start development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+**UI Development:**
+
+```bash
+# Start backend API server
+python api_server.py
+
+# In another terminal, start UI development server
+cd ui
+npm run dev
+
+# Access the web interface at http://localhost:3000
+```
+
+**Production Deployment:**
+
+```bash
+# Build UI for production
+cd ui
+npm run build
+
+# Serve with Docker
+docker-compose up -d
+
+# Or serve with nginx (see deploy/nginx.conf)
+```
+
+**UI Configuration:**
+
+The UI client automatically connects to the OpenManus API server. Configure the backend URL using environment variables:
+
+```bash
+# .env file in ui/ directory
+VITE_API_URL=http://localhost:8000
+VITE_WS_URL=ws://localhost:8000/ws/chat
+```
+
+**Available UI Features:**
+- **Chat Interface**: Direct conversation with AI agents
+- **Model Selection**: Choose from available LLM providers
+- **Task Types**: Specialized interfaces for web analysis, coding, research
+- **Settings Panel**: Configure agent behavior and preferences
+- **History Management**: View and manage conversation history
+- **Export/Import**: Save and load conversation sessions
+
 ### Enhanced MCP (Model Context Protocol) Integration
 
 OpenManus includes both basic and enhanced MCP capabilities for seamless integration with MCP-compatible tools and services.
