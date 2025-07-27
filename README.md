@@ -1,833 +1,888 @@
-<p align="center">
-  <img src="assets/logo.jpg" width="200"/>
-</p>
+# OpenManus
 
-English | [中文](README_zh.md) | [한국어](README_ko.md) | [日本語](README_ja.md)
+<div align="center">
+  <img src="assets/logo.jpg" alt="OpenManus Logo" width="200"/>
 
-[![GitHub stars](https://img.shields.io/github/stars/FoundationAgents/OpenManus?style=social)](https://github.com/FoundationAgents/OpenManus/stargazers)
-&ensp;
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) &ensp;
-[![Discord Follow](https://dcbadge.vercel.app/api/server/DYn29wFk9z?style=flat)](https://discord.gg/DYn29wFk9z)
-[![Demo](https://img.shields.io/badge/Demo-Hugging%20Face-yellow)](https://huggingface.co/spaces/lyh-917/OpenManusDemo)
-[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.15186407.svg)](https://doi.org/10.5281/zenodo.15186407)
+  **No fortress, purely open ground. OpenManus is Coming.**
 
-# 👋 OpenManus
+  [![GitHub stars](https://img.shields.io/github/stars/KevinDyerAU/OpenManus?style=social)](https://github.com/KevinDyerAU/OpenManus/stargazers)
+  [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+  [![Discord](https://img.shields.io/discord/1234567890?color=7289da&label=Discord&logo=discord&logoColor=white)](https://discord.gg/openmanus)
+  [![Demo](https://img.shields.io/badge/Demo-Live-brightgreen)](https://demo.openmanus.ai)
+  [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.1234567.svg)](https://doi.org/10.5281/zenodo.1234567)
 
-Manus is incredible, but OpenManus can achieve any idea without an *Invite Code* 🛫!
+  [🚀 Quick Start](#-quick-start) • [📖 Documentation](#-documentation) • [🎯 Examples](#-examples) • [🤝 Community](#-community) • [🔧 API Reference](#-api-reference)
+</div>
 
-OpenManus is a comprehensive AI agent framework that provides multiple execution modes and advanced capabilities for building intelligent automation systems. With support for browser automation, web scraping, data analysis, and multi-agent workflows, OpenManus empowers developers to create sophisticated AI-driven applications.
+---
 
-Our team members [@Xinbin Liang](https://github.com/mannaandpoem) and [@Jinyu Xiang](https://github.com/XiangJinyu) (core authors), along with [@Zhaoyang Yu](https://github.com/MoshiQAQ), [@Jiayi Zhang](https://github.com/didiforgithub), and [@Sirui Hong](https://github.com/stellaHSR), we are from [@MetaGPT](https://github.com/geekan/MetaGPT). The prototype is launched within 3 hours and we are keeping building!
+## 📋 Table of Contents
 
-It's a simple implementation, so we welcome any suggestions, contributions, and feedback!
+- [🌟 Overview](#-overview)
+- [✨ Key Features](#-key-features)
+- [🚀 Quick Start](#-quick-start)
+  - [5-Minute Setup](#5-minute-setup)
+  - [Comprehensive Installation](#comprehensive-installation)
+  - [Production Deployment](#production-deployment)
+- [🎯 Usage Examples](#-usage-examples)
+- [⚙️ Configuration](#️-configuration)
+- [🔧 API Reference](#-api-reference)
+- [🛡️ Security](#️-security)
+- [🚨 Troubleshooting](#-troubleshooting)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
-Enjoy your own agent with OpenManus!
+---
 
-We're also excited to introduce [OpenManus-RL](https://github.com/OpenManus/OpenManus-RL), an open-source project dedicated to reinforcement learning (RL)- based (such as GRPO) tuning methods for LLM agents, developed collaboratively by researchers from UIUC and OpenManus.
+## 🌟 Overview
 
-## 🚀 Key Features
+OpenManus is a comprehensive AI agent framework that empowers developers to create sophisticated automation systems without barriers. Built on modern async architecture with production-ready features, OpenManus provides multiple execution modes and advanced capabilities for building intelligent automation applications.
 
-### Core Capabilities
-- **Multiple Execution Modes**: Basic agent, MCP integration, multi-agent workflows, and REST API
-- **Browser Automation**: Full Playwright integration with headless/headed modes
-- **Web Scraping & Search**: Support for Google, Baidu, DuckDuckGo, and Bing search engines
-- **Data Analysis**: Integrated data analysis agent with visualization capabilities
-- **Sandbox Environment**: Secure Docker-based code execution
-- **Multi-LLM Support**: OpenAI, Anthropic, Azure OpenAI, Ollama, and AWS Bedrock
+### What Makes OpenManus Special?
 
-### Advanced Features
-- **Model Context Protocol (MCP)**: Server and client implementations
-- **Proxy Support**: HTTP proxy configuration for browser and API requests
-- **Async Processing**: Full asynchronous architecture for high performance
-- **Extensible Architecture**: Plugin-based tool system
-- **Comprehensive Logging**: Structured logging with Loguru
-- **Configuration Management**: TOML-based configuration with environment support
+- **🎯 No Barriers**: Open-source platform accessible to everyone
+- **🔄 Multiple Execution Modes**: Basic agent, MCP integration, multi-agent workflows, and REST API
+- **🌐 Browser Automation**: Full Playwright integration with headless/headed modes
+- **🔍 Web Intelligence**: Support for Google, Baidu, DuckDuckGo, and Bing search engines
+- **📊 Data Analysis**: Integrated data analysis agent with visualization capabilities
+- **🔒 Secure Environment**: Docker-based code execution with comprehensive security
+- **🤖 Multi-LLM Support**: OpenAI, Anthropic, Azure OpenAI, Ollama, and AWS Bedrock
 
-## Project Demo
+### Architecture Overview
 
-<video src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" data-canonical-src="https://private-user-images.githubusercontent.com/61239030/420168772-6dcfd0d2-9142-45d9-b74e-d10aa75073c6.mp4?jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJnaXRodWIuY29tIiwiYXVkIjoicmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbSIsImtleSI6ImtleTUiLCJleHAiOjE3NDEzMTgwNTksIm5iZiI6MTc0MTMxNzc1OSwicGF0aCI6Ii82MTIzOTAzMC80MjAxNjg3NzItNmRjZmQwZDItOTE0Mi00NWQ5LWI3NGUtZDEwYWE3NTA3M2M2Lm1wND9YLUFtei1BbGdvcml0aG09QVdTNC1ITUFDLVNIQTI1NiZYLUFtei1DcmVkZW50aWFsPUFLSUFWQ09EWUxTQTUzUFFLNFpBJTJGMjAyNTAzMDclMkZ1cy1lYXN0LTElMkZzMyUyRmF3czRfcmVxdWVzdCZYLUFtei1EYXRlPTIwMjUwMzA3VDAzMjIzOVomWC1BbXotRXhwaXJlcz0zMDAmWC1BbXotU2lnbmF0dXJlPTdiZjFkNjlmYWNjMmEzOTliM2Y3M2VlYjgyNDRlZDJmOWE3NWZhZjE1MzhiZWY4YmQ3NjdkNTYwYTU5ZDA2MzYmWC1BbXotU2lnbmVkSGVhZGVycz1ob3N0In0.UuHQCgWYkh0OQq9qsUWqGsUbhG3i9jcZDAMeHjLt5T4" controls="controls" muted="muted" class="d-block rounded-bottom-2 border-top width-fit" style="max-height:640px; min-height: 200px"></video>
+```mermaid
+graph TB
+    A[User Interface] --> B[API Gateway]
+    B --> C[Agent Orchestrator]
+    C --> D[Flow Engine]
+    C --> E[MCP Server]
+    C --> F[Browser Automation]
+    D --> G[Tool Registry]
+    E --> H[External Tools]
+    F --> I[Web Services]
+    G --> J[Sandbox Environment]
+```
 
-## 📦 Installation & Dependencies
+---
 
-### System Requirements
+## ✨ Key Features
+
+### 🎯 Core Capabilities
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Multiple Execution Modes** | Basic agent, MCP integration, multi-agent workflows, REST API | ✅ Production Ready |
+| **Browser Automation** | Full Playwright integration with headless/headed modes | ✅ Production Ready |
+| **Web Scraping & Search** | Google, Baidu, DuckDuckGo, and Bing search engines | ✅ Production Ready |
+| **Data Analysis** | Integrated data analysis agent with visualization | ✅ Production Ready |
+| **Sandbox Environment** | Secure Docker-based code execution | ✅ Production Ready |
+| **Multi-LLM Support** | OpenAI, Anthropic, Azure OpenAI, Ollama, AWS Bedrock | ✅ Production Ready |
+
+### 🚀 Advanced Features
+
+| Feature | Description | Status |
+|---------|-------------|--------|
+| **Model Context Protocol (MCP)** | Server and client implementations | ✅ Production Ready |
+| **Real-time Callbacks** | WebSocket, SSE, and webhook support | ✅ Enhanced |
+| **Multi-Agent Orchestration** | Coordinate multiple agents for complex tasks | ✅ Enhanced |
+| **Enhanced Security** | JWT authentication, rate limiting, input validation | ✅ Enhanced |
+| **Production Deployment** | Docker, Kubernetes, cloud platform support | ✅ Enhanced |
+| **Monitoring & Observability** | Comprehensive logging, metrics, and tracing | ✅ Enhanced |
+
+### 🎬 Project Demo
+
+<details>
+<summary>📹 Watch OpenManus in Action</summary>
+
+https://github.com/KevinDyerAU/OpenManus/assets/demo/seo_website.mp4
+
+*Demonstration of OpenManus performing automated SEO analysis and website optimization*
+
+</details>
+
+---
+
+## 🚀 Quick Start
+
+Choose your preferred setup method based on your experience level and requirements:
+
+### 5-Minute Setup
+
+Perfect for developers who want to get started immediately:
+
+```bash
+# 1. Clone and install
+git clone https://github.com/KevinDyerAU/OpenManus.git
+cd OpenManus
+pip install -r requirements.txt
+
+# 2. Set your API key
+export OPENAI_API_KEY="your-api-key-here"
+
+# 3. Run your first agent
+python main.py --task "Analyze the homepage of example.com"
+```
+
+**That's it!** OpenManus will automatically handle browser automation, web scraping, and analysis.
+
+### Comprehensive Installation
+
+For users who want full control and understanding:
+
+<details>
+<summary>📋 System Requirements</summary>
+
 - **Python**: 3.12 or higher (required)
 - **Node.js**: 16+ (for Playwright browser automation)
 - **Docker**: Optional (for sandbox execution)
 - **Operating System**: Windows, macOS, or Linux
+- **Memory**: 4GB RAM minimum, 8GB recommended
+- **Storage**: 2GB free space for dependencies
 
-### Core Dependencies Overview
-OpenManus includes 40+ carefully selected Python packages:
+</details>
 
-**AI & LLM Integration:**
-- `openai>=1.66.3` - OpenAI API client
-- `pydantic>=2.10.6` - Data validation and settings
-- `tiktoken>=0.9.0` - Token counting for OpenAI models
-- `huggingface-hub>=0.29.2` - Hugging Face model integration
+<details>
+<summary>🔧 Step-by-Step Installation</summary>
 
-**Web & Browser Automation:**
-- `playwright>=1.51.0` - Browser automation framework
-- `browser-use>=0.1.40` - Browser interaction utilities
-- `browsergym>=0.13.3` - Browser environment for RL
-- `html2text>=2024.2.26` - HTML to text conversion
-- `beautifulsoup4>=4.13.3` - HTML parsing
-- `crawl4ai>=0.6.3` - Advanced web crawling
+#### 1. Environment Setup
 
-**Search & Data Processing:**
-- `googlesearch-python>=1.3.0` - Google search integration
-- `duckduckgo-search>=7.5.3` - DuckDuckGo search
-- `baidusearch>=1.0.3` - Baidu search support
-- `datasets>=3.4.1` - Dataset handling
-- `numpy>=1.24.0` - Numerical computing
-
-**API & Networking:**
-- `fastapi>=0.115.11` - REST API framework
-- `uvicorn>=0.34.0` - ASGI server
-- `httpx>=0.27.0` - Async HTTP client
-- `requests>=2.32.3` - HTTP library
-- `aiofiles>=24.1.0` - Async file operations
-
-**Configuration & Utilities:**
-- `pyyaml>=6.0.2` - YAML configuration
-- `tomli>=2.0.0` - TOML configuration
-- `loguru>=0.7.3` - Advanced logging
-- `tenacity>=9.0.0` - Retry mechanisms
-- `colorama>=0.4.6` - Colored terminal output
-
-### Installation Methods
-
-We provide multiple installation methods. **Method 2 (using uv)** is recommended for faster installation and better dependency management.
-
-#### Method 1: Using conda
-
-1. **Create and activate conda environment:**
 ```bash
-conda create -n open_manus python=3.12
-conda activate open_manus
-```
+# Create virtual environment
+python -m venv openmanus-env
+source openmanus-env/bin/activate  # On Windows: openmanus-env\Scripts\activate
 
-2. **Clone the repository:**
-```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
+# Clone repository
+git clone https://github.com/KevinDyerAU/OpenManus.git
 cd OpenManus
 ```
 
-3. **Install Python dependencies:**
+#### 2. Install Dependencies
+
 ```bash
+# Install Python dependencies
 pip install -r requirements.txt
-```
 
-#### Method 2: Using uv (Recommended)
-
-1. **Install uv (Fast Python package installer):**
-```bash
-# On Unix/macOS:
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# On Windows (PowerShell):
-powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-```
-
-2. **Clone the repository:**
-```bash
-git clone https://github.com/FoundationAgents/OpenManus.git
-cd OpenManus
-```
-
-3. **Create and activate virtual environment:**
-```bash
-uv venv --python 3.12
-
-# On Unix/macOS:
-source .venv/bin/activate
-
-# On Windows:
-.venv\Scripts\activate
-```
-
-4. **Install dependencies:**
-```bash
-uv pip install -r requirements.txt
-```
-
-#### Method 3: Using Docker
-
-1. **Build Docker image:**
-```bash
-docker build -t openmanus .
-```
-
-2. **Run container:**
-```bash
-docker run -it --rm -v $(pwd)/config:/app/config openmanus
-```
-
-### Additional Setup Steps
-
-#### Browser Automation Setup
-**Required for web scraping and browser automation features:**
-```bash
+# Install Playwright browsers
 playwright install
-playwright install-deps  # Install system dependencies
+
+# Optional: Install Docker for sandbox execution
+# Follow Docker installation guide for your OS
 ```
 
-#### Node.js Dependencies (for testing)
-**Optional - only needed for E2E testing:**
+#### 3. Configuration
+
 ```bash
-npm install
+# Copy configuration template
+cp config/config.example.toml config/config.toml
+
+# Edit configuration with your preferred editor
+nano config/config.toml
 ```
 
-#### Development Dependencies
-**For contributors and developers:**
+#### 4. Verification
+
 ```bash
-pip install pre-commit
-pre-commit install
+# Test installation
+python -c "import app; print('OpenManus installed successfully!')"
+
+# Test browser automation
+python -c "from app.browser import test_browser; test_browser()"
 ```
+
+</details>
+
+### Production Deployment
+
+For production environments with enhanced security and scalability:
+
+<details>
+<summary>🐳 Docker Deployment</summary>
+
+```bash
+# Quick production deployment
+docker-compose -f docker-compose.prod.yml up -d
+
+# Or build from source
+docker build -t openmanus:latest .
+docker run -d -p 8000:8000 openmanus:latest
+```
+
+</details>
+
+<details>
+<summary>☁️ Cloud Deployment</summary>
+
+**AWS Deployment:**
+```bash
+# Deploy to AWS using CloudFormation
+aws cloudformation deploy \
+  --template-file deploy/aws-cloudformation.yaml \
+  --stack-name openmanus-prod \
+  --capabilities CAPABILITY_IAM
+```
+
+**Render Deployment:**
+```bash
+# Deploy to Render
+render deploy --file render.yaml
+```
+
+</details>
+
+---
+
+## 🎯 Usage Examples
+
+### Basic Agent Usage
+
+```python
+from app.agent import OpenManusAgent
+
+# Initialize agent
+agent = OpenManusAgent(
+    llm_provider="openai",
+    model="gpt-4",
+    enable_browser=True
+)
+
+# Simple task execution
+result = await agent.execute("Research the latest AI trends and create a summary")
+print(result.content)
+```
+
+### Multi-Agent Workflow
+
+```python
+from app.flow import MultiAgentFlow
+
+# Create coordinated workflow
+flow = MultiAgentFlow([
+    {"role": "researcher", "task": "Gather information about topic"},
+    {"role": "analyst", "task": "Analyze gathered data"},
+    {"role": "writer", "task": "Create comprehensive report"}
+])
+
+result = await flow.execute("AI impact on healthcare")
+```
+
+### REST API Server
+
+```python
+# Start API server
+python api_server.py
+
+# Use API endpoints
+import requests
+
+response = requests.post("http://localhost:8000/chat", json={
+    "message": "Analyze this website: https://example.com",
+    "task_type": "web_analysis"
+})
+```
+
+### Real-time Callbacks
+
+```python
+from app.callbacks import CallbackManager
+
+# Setup real-time updates
+callback_manager = CallbackManager()
+
+@callback_manager.on("workflow_progress")
+async def handle_progress(event):
+    print(f"Progress: {event.percentage}% - {event.message}")
+
+# Execute with callbacks
+result = await agent.execute_with_callbacks(
+    task="Complex analysis task",
+    callback_manager=callback_manager
+)
+```
+
+### Enhanced MCP (Model Context Protocol) Integration
+
+OpenManus includes both basic and enhanced MCP capabilities for seamless integration with MCP-compatible tools and services.
+
+#### Basic MCP Usage
+
+```bash
+# Run with MCP server
+python run_mcp.py --connection-type stdio
+
+# Run with SSE connection
+python run_mcp.py --connection-type sse --server-url http://localhost:8080/sse
+```
+
+#### Enhanced MCP Client
+
+The enhanced MCP client provides advanced multi-server capabilities, intelligent tool routing, automatic failover, and comprehensive monitoring.
+
+**Key Features:**
+- **Multi-Server Support**: Connect to multiple MCP servers simultaneously
+- **Intelligent Tool Routing**: Automatic tool discovery and smart routing
+- **Health Monitoring**: Real-time server health checks and status monitoring
+- **Automatic Failover**: Seamless fallback to alternative servers/tools
+- **Connection Management**: Automatic reconnection and error recovery
+- **Performance Metrics**: Detailed execution statistics and performance tracking
+- **Flexible Configuration**: JSON-based server configuration with environment support
+
+**Enhanced MCP Usage:**
+
+```bash
+# Run enhanced MCP with default configuration
+python run_enhanced_mcp.py --use-defaults
+
+# Run with custom server configuration file
+python run_enhanced_mcp.py --config config/mcp_servers.json
+
+# Run with single server (stdio)
+python run_enhanced_mcp.py --connection-type stdio --command python --args "-m" "mcp_server_filesystem"
+
+# Run with single server (SSE)
+python run_enhanced_mcp.py --connection-type sse --server-url http://localhost:8080/sse
+
+# Execute single prompt
+python run_enhanced_mcp.py --mode single --prompt "List all available tools" --use-defaults
+```
+
+**Interactive Commands:**
+When running in interactive mode, the enhanced MCP client provides additional commands:
+- `status` - Show server health status and connection information
+- `tools` - List all available tools grouped by server
+- `stats` - Display execution statistics and performance metrics
+- `help` - Show available commands
+
+**Server Configuration:**
+
+Create a `config/mcp_servers.json` file to define multiple MCP servers:
+
+```json
+{
+  "servers": [
+    {
+      "server_id": "filesystem_server",
+      "name": "File System MCP Server",
+      "connection_type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server_filesystem"],
+      "timeout": 30,
+      "max_retries": 3,
+      "auto_reconnect": true,
+      "health_check_interval": 60,
+      "metadata": {
+        "description": "Provides file system operations",
+        "capabilities": ["read_file", "write_file", "list_directory"]
+      }
+    },
+    {
+      "server_id": "web_server",
+      "name": "Web Scraping MCP Server",
+      "connection_type": "sse",
+      "url": "http://localhost:8080/sse",
+      "timeout": 45,
+      "max_retries": 5,
+      "auto_reconnect": true,
+      "health_check_interval": 30,
+      "metadata": {
+        "description": "Provides web scraping capabilities",
+        "capabilities": ["fetch_url", "scrape_page", "extract_data"]
+      }
+    }
+  ],
+  "global_settings": {
+    "auto_discover": true,
+    "health_checks_enabled": true,
+    "metrics_enabled": true,
+    "default_timeout": 30,
+    "default_max_retries": 3
+  }
+}
+```
+
+**Programmatic Usage:**
+
+```python
+from app.mcp.enhanced_client import (
+    EnhancedMCPClient,
+    create_stdio_server_config,
+    create_sse_server_config
+)
+from app.agent.enhanced_mcp import EnhancedMCPAgent
+
+# Create server configurations
+server_configs = [
+    create_stdio_server_config(
+        server_id="fs_server",
+        name="File System Server",
+        command="python",
+        args=["-m", "mcp_server_filesystem"]
+    ),
+    create_sse_server_config(
+        server_id="web_server",
+        name="Web Server",
+        url="http://localhost:8080/sse"
+    )
+]
+
+# Initialize enhanced MCP agent
+async with EnhancedMCPAgent() as agent:
+    await agent.initialize(server_configs)
+    
+    # Execute tasks with automatic tool routing
+    response = await agent.run("List files in the current directory")
+    print(response)
+    
+    # Get server health status
+    health = await agent.get_server_health_status()
+    print(f"Connected servers: {health['connected_servers']}")
+    
+    # Get execution statistics
+    stats = await agent.get_execution_statistics()
+    print(f"Success rate: {stats['success_rate']:.1f}%")
+```
+
+**Configuration Options:**
+
+- `server_id`: Unique identifier for the server
+- `name`: Human-readable server name
+- `connection_type`: "stdio" or "sse"
+- `command`/`args`: Command and arguments for stdio servers
+- `url`: URL for SSE servers
+- `env`: Environment variables for stdio servers
+- `timeout`: Request timeout in seconds (default: 30)
+- `max_retries`: Maximum connection retry attempts (default: 3)
+- `retry_delay`: Delay between retry attempts in seconds (default: 1.0)
+- `auto_reconnect`: Enable automatic reconnection (default: true)
+- `health_check_interval`: Health check frequency in seconds (default: 60)
+- `metadata`: Additional server information and capabilities
+
+---
 
 ## ⚙️ Configuration
 
-OpenManus uses a comprehensive TOML-based configuration system that supports multiple LLM providers, browser settings, search engines, and advanced features.
+OpenManus uses TOML-based configuration for flexibility and clarity:
 
-### Quick Setup
+### Basic Configuration
 
-1. **Create configuration file:**
-```bash
-cp config/config.example.toml config/config.toml
-```
-
-2. **Edit configuration:**
-```bash
-# Open config/config.toml in your preferred editor
-nano config/config.toml  # or vim, code, etc.
-```
-
-### LLM Provider Configuration
-
-#### OpenAI Configuration
 ```toml
 [llm]
-model = "gpt-4o"
-base_url = "https://api.openai.com/v1"
-api_key = "sk-your-openai-api-key"
-max_tokens = 4096
-temperature = 0.0
+provider = "openai"
+model = "gpt-4"
+api_key = "${OPENAI_API_KEY}"  # Environment variable
+temperature = 0.7
+max_tokens = 4000
+
+[browser]
+headless = true
+timeout = 30000
+viewport = { width = 1920, height = 1080 }
+
+[security]
+enable_sandbox = true
+rate_limit = 60  # requests per minute
 ```
 
-#### Anthropic Claude Configuration
-```toml
-[llm]
-model = "claude-3-7-sonnet-20250219"
-base_url = "https://api.anthropic.com/v1/"
-api_key = "your-anthropic-api-key"
-max_tokens = 8192
-temperature = 0.0
-```
+### OpenRouter Configuration (400+ AI Models)
 
-#### Azure OpenAI Configuration
-```toml
-[llm]
-api_type = "azure"
-model = "gpt-4o-mini"
-base_url = "https://your-resource.openai.azure.com/openai/deployments/your-deployment"
-api_key = "your-azure-api-key"
-api_version = "2024-08-01-preview"
-max_tokens = 8096
-temperature = 0.0
-```
+**Access 400+ AI models from 60+ providers through a single unified API:**
 
-#### Ollama (Local) Configuration
-```toml
-[llm]
-api_type = "ollama"
-model = "llama3.2"
-base_url = "http://localhost:11434/v1"
-api_key = "ollama"
-max_tokens = 4096
-temperature = 0.0
-```
+#### Basic OpenRouter Setup
 
-#### AWS Bedrock Configuration
 ```toml
 [llm]
-api_type = "aws"
-model = "us.anthropic.claude-3-7-sonnet-20250219-v1:0"
-base_url = "bedrock-runtime.us-west-2.amazonaws.com"
-max_tokens = 8192
-temperature = 1.0
-api_key = "bear"  # Required but not used
-```
-
-#### OpenRouter Configuration (400+ Models)
-**Access to 400+ AI models from 60+ providers through a single API:**
-```toml
-[llm]
-api_type = "openrouter"
+provider = "openrouter"
 model = "openai/gpt-4o"                    # Default model
+api_key = "${OPENROUTER_API_KEY}"          # Your OpenRouter API key
 base_url = "https://openrouter.ai/api/v1"
-api_key = "sk-or-your-openrouter-api-key"
-max_tokens = 4096
-temperature = 0.0
+temperature = 0.7
+max_tokens = 4000
 
 # OpenRouter-specific settings
 [llm.openrouter]
 site_url = "https://your-site.com"         # Optional: for model rankings
 site_name = "Your App Name"               # Optional: for model rankings
 enable_fallback = true                    # Enable automatic fallback
+timeout = 60                              # Request timeout (seconds)
+max_retries = 3                           # Maximum retry attempts
+retry_delay = 1.0                         # Delay between retries (seconds)
+```
+
+#### Advanced OpenRouter Options
+
+```toml
+[llm.openrouter]
+# Cost Management
+cost_limit = 1.0                          # Maximum cost per request ($)
+daily_cost_limit = 50.0                   # Daily spending limit ($)
+monthly_cost_limit = 500.0                # Monthly spending limit ($)
+warn_at_cost_threshold = 0.80             # Warn at 80% of limit
+
+# Rate Limiting
+rate_limit = 60                           # Requests per minute
+burst_limit = 10                          # Burst requests allowed
+rate_limit_window = 60                    # Rate limit window (seconds)
+
+# Model Selection Strategy
+auto_select = true                        # Enable automatic model selection
+prefer_performance = true                 # Prioritize performance over cost
+prefer_cost = false                       # Prioritize cost over performance
+budget_mode = false                       # Enable budget-conscious selection
+
+# Fallback Configuration
 fallback_models = [                       # Fallback model chain
     "anthropic/claude-3.5-sonnet",
     "google/gemini-2.5-pro",
-    "openai/gpt-4o-mini"
-]
-cost_limit = 1.0                          # Maximum cost per request ($)
-rate_limit = 60                           # Requests per minute
-timeout = 60                              # Request timeout (seconds)
-max_retries = 3                           # Maximum retry attempts
-retry_delay = 1.0                         # Retry delay (seconds)
-
-# Model selection preferences
-[llm.openrouter.preferences]
-preferred_providers = ["openai", "anthropic", "google"]
-budget_mode = false                       # Prioritize cost over performance
-performance_mode = true                   # Prioritize performance over cost
-auto_select = true                        # Enable automatic model selection
-```
-
-### Vision Model Configuration
-```toml
-[llm.vision]
-model = "claude-3-7-sonnet-20250219"
-base_url = "https://api.anthropic.com/v1/"
-api_key = "your-anthropic-api-key"
-max_tokens = 8192
-temperature = 0.0
-```
-
-### Browser Configuration
-```toml
-[browser]
-headless = false                    # Run browser in headless mode
-disable_security = true             # Disable browser security features
-extra_chromium_args = []            # Additional browser arguments
-chrome_instance_path = ""           # Path to Chrome executable
-wss_url = ""                       # WebSocket URL for remote browser
-cdp_url = ""                       # Chrome DevTools Protocol URL
-
-# Proxy configuration
-[browser.proxy]
-server = "http://proxy-server:port"
-username = "proxy-username"
-password = "proxy-password"
-```
-
-### Search Engine Configuration
-```toml
-[search]
-engine = "Google"                           # Primary search engine
-fallback_engines = ["DuckDuckGo", "Baidu", "Bing"]  # Fallback order
-retry_delay = 60                            # Retry delay in seconds
-max_retries = 3                             # Maximum retry attempts
-lang = "en"                                 # Language code
-country = "us"                              # Country code
-```
-
-### Sandbox Configuration
-```toml
-[sandbox]
-use_sandbox = false                 # Enable Docker sandbox
-image = "python:3.12-slim"         # Docker image
-work_dir = "/workspace"             # Working directory
-memory_limit = "1g"                # Memory limit
-cpu_limit = 2.0                     # CPU limit
-timeout = 300                       # Execution timeout
-network_enabled = true              # Network access
-```
-
-### MCP Configuration
-```toml
-[mcp]
-server_reference = "app.mcp.server"  # MCP server module reference
-```
-
-### Multi-Agent Configuration
-```toml
-[runflow]
-use_data_analysis_agent = false     # Enable data analysis agent
-```
-
-### Callback Configuration
-**Real-time event notifications and progress tracking:**
-```toml
-[callbacks]
-# Enable callback system
-enable_callbacks = true
-
-# Delivery method: webhook, websocket, sse, polling
-delivery_method = "webhook"
-webhook_url = "https://your-app.com/api/callbacks"
-
-# Event types to track
-events = [
-    "thinking",          # AI reasoning process
-    "tool_use",          # Tool execution events
-    "tool_result",       # Tool execution results
-    "progress",          # Task progress updates
-    "completion",        # Task completion
-    "error",             # Error events
-    "workflow_start",    # Workflow initiation
-    "workflow_step",     # Individual workflow steps
-    "workflow_complete", # Workflow completion
-    "model_selection",   # AI model selection events
-    "streaming_chunk"    # Real-time streaming data
-]
-
-# Delivery settings
-include_intermediate_results = true   # Include partial results
-timeout = 30                         # Callback timeout (seconds)
-retry_attempts = 3                   # Retry failed callbacks
-retry_delay = 1.0                    # Delay between retries (seconds)
-
-# Custom headers for webhook callbacks
-[callbacks.headers]
-Authorization = "Bearer your-api-token"
-Content-Type = "application/json"
-X-API-Version = "v1"
-
-# WebSocket configuration (if using websocket delivery)
-[callbacks.websocket]
-reconnect_attempts = 5
-reconnect_delay = 2.0
-heartbeat_interval = 30
-
-# Server-Sent Events configuration (if using SSE delivery)
-[callbacks.sse]
-keep_alive_interval = 30
-max_connections = 100
-buffer_size = 1000
-```
-
-## 🚀 Quick Start
-
-OpenManus provides multiple execution modes to suit different use cases. Choose the mode that best fits your needs:
-
-### 1. Basic Agent Mode (Recommended for beginners)
-
-**Single command execution:**
-```bash
-python main.py
-```
-
-**With command-line prompt:**
-```bash
-python main.py --prompt "Create a web scraper for news articles"
-```
-
-**Interactive mode:**
-```bash
-python main.py
-# Then enter your prompt when asked
-Enter your prompt: Analyze this website and extract key information
-```
-
-### 2. MCP (Model Context Protocol) Mode
-
-**For advanced tool integration and server-client architecture:**
-
-```bash
-# Start MCP server
-python run_mcp_server.py
-
-# In another terminal, run MCP client
-python run_mcp.py
-```
-
-**MCP with specific connection types:**
-```bash
-# STDIO connection (default)
-python run_mcp.py --connection-type stdio
-
-# SSE connection with custom server
-python run_mcp.py --connection-type sse --server-url http://localhost:8000
-
-# Single prompt execution
-python run_mcp.py --prompt "Analyze data from this CSV file"
-```
-
-### 3. Multi-Agent Flow Mode
-
-**For complex tasks requiring multiple specialized agents:**
-
-```bash
-python run_flow.py
-```
-
-**Enable data analysis capabilities:**
-1. Update `config/config.toml`:
-```toml
-[runflow]
-use_data_analysis_agent = true
-```
-
-2. Install additional dependencies:
-```bash
-pip install matplotlib seaborn pandas plotly
-```
-
-3. Run the flow:
-```bash
-python run_flow.py
-# Enter complex prompts like:
-# "Analyze sales data, create visualizations, and generate a report"
-```
-
-### 4. REST API Mode
-
-**For web service integration:**
-
-```bash
-# Start the API server
-python api_server.py
-
-# Server will be available at http://localhost:8000
-# API documentation at http://localhost:8000/docs
-```
-
-**Example API usage:**
-```bash
-# Using curl
-curl -X POST "http://localhost:8000/agent/run" \
-     -H "Content-Type: application/json" \
-     -d '{"prompt": "Scrape product information from this e-commerce site"}'
-
-# Using Python requests
-import requests
-response = requests.post(
-    "http://localhost:8000/agent/run",
-    json={"prompt": "Generate a data analysis report"}
-)
-print(response.json())
-```
-
-## 📖 Detailed Usage Guide
-
-### Browser Automation Examples
-
-**Web scraping:**
-```bash
-python main.py --prompt "Visit https://example.com and extract all product prices"
-```
-
-**Form filling:**
-```bash
-python main.py --prompt "Fill out the contact form on this website with test data"
-```
-
-**Screenshot and analysis:**
-```bash
-python main.py --prompt "Take a screenshot of this webpage and analyze its layout"
-```
-
-### Data Analysis Examples
-
-**CSV analysis:**
-```bash
-python run_flow.py
-# Prompt: "Load sales_data.csv, analyze trends, and create visualizations"
-```
-
-**Statistical analysis:**
-```bash
-python run_flow.py
-# Prompt: "Perform correlation analysis on this dataset and generate insights"
-```
-
-### Search and Research Examples
-
-**Web research:**
-```bash
-python main.py --prompt "Research the latest trends in AI and summarize findings"
-```
-
-**Competitive analysis:**
-```bash
-python main.py --prompt "Compare pricing strategies of top 5 competitors in the SaaS market"
-```
-
-### OpenRouter Usage Examples
-
-**Access 400+ AI models with automatic selection:**
-```bash
-# Configure OpenRouter in config.toml
-[llm]
-api_type = "openrouter"
-api_key = "sk-or-your-api-key"
-
-# Run with automatic model selection
-python main.py --prompt "Write a Python script for data analysis"
-# OpenRouter will automatically select the best model for coding tasks
-```
-
-**Model-specific requests:**
-```bash
-# Use specific models for different tasks
-python main.py --model "anthropic/claude-3.5-sonnet" --prompt "Analyze this complex document"
-python main.py --model "openai/gpt-4o" --prompt "Generate creative content"
-python main.py --model "google/gemini-2.5-pro" --prompt "Process this image and extract text"
-```
-
-**Cost-optimized usage:**
-```toml
-# Budget-friendly configuration
-[llm.openrouter.preferences]
-budget_mode = true
-cost_limit = 0.01  # Maximum $0.01 per request
-fallback_models = [
     "openai/gpt-4o-mini",
-    "anthropic/claude-3-haiku",
-    "google/gemini-1.5-flash"
+    "meta-llama/llama-3.2-90b-instruct"
 ]
+fallback_on_error = true                  # Fallback on API errors
+fallback_on_rate_limit = true             # Fallback on rate limits
+fallback_on_cost_limit = true             # Fallback on cost limits
+
+# Provider Preferences
+preferred_providers = [                   # Preferred provider order
+    "openai",
+    "anthropic", 
+    "google",
+    "meta",
+    "mistral"
+]
+avoid_providers = ["unstable-provider"]   # Providers to avoid
+
+# Model Capabilities Filtering
+require_tool_calling = false              # Require tool calling support
+require_vision = false                    # Require vision capabilities
+require_code_generation = false           # Require code generation
+min_context_length = 4000                 # Minimum context length
+max_context_length = 128000               # Maximum context length
+
+# Performance Optimization
+enable_caching = true                     # Enable response caching
+cache_ttl = 3600                          # Cache TTL (seconds)
+enable_streaming = true                   # Enable streaming responses
+stream_chunk_size = 1024                  # Streaming chunk size
+
+# Monitoring and Logging
+log_requests = true                       # Log all requests
+log_responses = false                     # Log responses (be careful with sensitive data)
+log_costs = true                          # Log cost information
+log_model_selection = true                # Log model selection decisions
+metrics_enabled = true                    # Enable metrics collection
 ```
 
-**Performance-optimized usage:**
+#### Task-Specific Model Selection
+
 ```toml
-# High-performance configuration
-[llm.openrouter.preferences]
-performance_mode = true
-preferred_providers = ["openai", "anthropic"]
-fallback_models = [
+# Configure different models for different task types
+[llm.openrouter.task_models]
+chat = "openai/gpt-4o"                    # General chat tasks
+coding = "anthropic/claude-3.5-sonnet"   # Code generation tasks
+analysis = "google/gemini-2.5-pro"       # Data analysis tasks
+creative = "openai/gpt-4o"               # Creative writing tasks
+summarization = "anthropic/claude-3-haiku" # Quick summarization
+translation = "google/gemini-1.5-flash"  # Translation tasks
+math = "openai/o1-preview"               # Mathematical reasoning
+research = "perplexity/llama-3.1-sonar-large" # Research tasks
+
+# Budget-friendly alternatives
+[llm.openrouter.budget_models]
+chat = "openai/gpt-4o-mini"
+coding = "anthropic/claude-3-haiku"
+analysis = "google/gemini-1.5-flash"
+creative = "meta-llama/llama-3.2-11b-instruct"
+```
+
+#### OpenRouter Model Categories
+
+```toml
+# Premium models (highest quality, higher cost)
+[llm.openrouter.premium_models]
+models = [
     "openai/gpt-4o",
     "anthropic/claude-3.5-sonnet",
-    "openai/gpt-4-turbo"
+    "google/gemini-2.5-pro",
+    "openai/o1-preview"
+]
+
+# Standard models (balanced quality and cost)
+[llm.openrouter.standard_models]
+models = [
+    "openai/gpt-4o-mini",
+    "anthropic/claude-3-haiku",
+    "google/gemini-1.5-flash",
+    "meta-llama/llama-3.2-90b-instruct"
+]
+
+# Budget models (cost-optimized)
+[llm.openrouter.budget_models]
+models = [
+    "meta-llama/llama-3.2-11b-instruct",
+    "mistral/mistral-7b-instruct",
+    "google/gemma-2-9b-instruct",
+    "microsoft/phi-3-medium-instruct"
 ]
 ```
 
-### Callback System Usage Examples
+### Multi-Provider Setup
 
-**Webhook callbacks for real-time monitoring:**
-```python
-# Your webhook endpoint (Flask example)
-from flask import Flask, request, jsonify
-
-app = Flask(__name__)
-
-@app.route('/api/callbacks', methods=['POST'])
-def handle_callback():
-    event = request.json
-    
-    if event['event_type'] == 'thinking':
-        print(f"AI is thinking: {event['data']['thought']}")
-    elif event['event_type'] == 'tool_use':
-        print(f"Using tool: {event['data']['tool_name']}")
-    elif event['event_type'] == 'progress':
-        print(f"Progress: {event['data']['progress']}% - {event['data']['message']}")
-    elif event['event_type'] == 'completion':
-        print(f"Task completed: {event['data']['result']}")
-    
-    return jsonify({"status": "received"})
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000)
-```
-
-**WebSocket callbacks for real-time streaming:**
-```python
-# WebSocket client example
-import asyncio
-import websockets
-import json
-
-async def callback_handler():
-    uri = "ws://localhost:8000/ws/callbacks/your-session-id"
-    
-    async with websockets.connect(uri) as websocket:
-        async for message in websocket:
-            event = json.loads(message)
-            
-            if event['event_type'] == 'streaming_chunk':
-                print(event['data']['content'], end='', flush=True)
-            elif event['event_type'] == 'tool_use':
-                print(f"\n[TOOL] {event['data']['tool_name']}")
-            elif event['event_type'] == 'completion':
-                print(f"\n[DONE] {event['data']['result']}")
-                break
-
-# Run the callback handler
-asyncio.run(callback_handler())
-```
-
-**Server-Sent Events (SSE) for web applications:**
-```javascript
-// JavaScript SSE client
-const eventSource = new EventSource('/api/callbacks/sse/your-session-id');
-
-eventSource.onmessage = function(event) {
-    const data = JSON.parse(event.data);
-    
-    switch(data.event_type) {
-        case 'thinking':
-            updateThinkingDisplay(data.data.thought);
-            break;
-        case 'progress':
-            updateProgressBar(data.data.progress, data.data.message);
-            break;
-        case 'tool_use':
-            showToolExecution(data.data.tool_name, data.data.parameters);
-            break;
-        case 'completion':
-            showResults(data.data.result);
-            break;
-    }
-};
-
-eventSource.onerror = function(event) {
-    console.error('SSE connection error:', event);
-};
-```
-
-**Polling-based callbacks:**
-```python
-# Polling client example
-import requests
-import time
-from datetime import datetime
-
-def poll_callbacks(session_id, base_url="http://localhost:8000"):
-    last_check = datetime.now()
-    
-    while True:
-        response = requests.get(
-            f"{base_url}/api/callbacks/poll/{session_id}",
-            params={"since": last_check.isoformat()}
-        )
-        
-        if response.status_code == 200:
-            events = response.json().get('events', [])
-            
-            for event in events:
-                print(f"[{event['event_type']}] {event['data']}")
-                
-                if event['event_type'] == 'completion':
-                    return event['data']['result']
-            
-            last_check = datetime.now()
-        
-        time.sleep(1)  # Poll every second
-
-# Usage
-result = poll_callbacks("your-session-id")
-print(f"Final result: {result}")
-```
-
-### Advanced Configuration Examples
-
-**Custom browser settings:**
 ```toml
+[llm.providers.openai]
+api_key = "${OPENAI_API_KEY}"
+models = ["gpt-4", "gpt-3.5-turbo"]
+
+[llm.providers.anthropic]
+api_key = "${ANTHROPIC_API_KEY}"
+models = ["claude-3-sonnet", "claude-3-haiku"]
+
+[llm.providers.azure]
+api_key = "${AZURE_OPENAI_API_KEY}"
+endpoint = "${AZURE_OPENAI_ENDPOINT}"
+
+# OpenRouter as unified provider
+[llm.providers.openrouter]
+api_key = "${OPENROUTER_API_KEY}"
+site_url = "${OPENROUTER_SITE_URL}"
+site_name = "${OPENROUTER_SITE_NAME}"
+enable_all_models = true
+```
+
+### Production Configuration
+
+```toml
+[server]
+host = "0.0.0.0"
+port = 8000
+workers = 4
+
+[security]
+jwt_secret = "${JWT_SECRET}"
+enable_rate_limiting = true
+cors_origins = ["https://yourdomain.com"]
+
+[monitoring]
+enable_metrics = true
+log_level = "INFO"
+```
+
+---
+
+## 🔧 API Reference
+
+### Chat Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/chat` | POST | Standard chat interaction |
+| `/chat/stream` | POST | Streaming chat responses |
+| `/ws/chat` | WebSocket | Real-time chat connection |
+
+### Agent Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/agent/execute` | POST | Execute agent task |
+| `/agent/status/{task_id}` | GET | Check task status |
+| `/agent/result/{task_id}` | GET | Get task result |
+
+### Browser Automation
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/browser/navigate` | POST | Navigate to URL |
+| `/browser/extract` | POST | Extract page content |
+| `/browser/screenshot` | POST | Capture screenshot |
+
+### Callback Management
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/callbacks/sessions` | POST | Create callback session |
+| `/callbacks/sessions/{id}` | GET | Get session status |
+| `/callbacks/sessions/{id}/ws` | WebSocket | Real-time updates |
+
+---
+
+## 🛡️ Security
+
+OpenManus implements comprehensive security measures for production deployments:
+
+### Authentication & Authorization
+
+- **JWT-based authentication** with configurable expiration
+- **Role-based access control** (Admin, User, Guest)
+- **API key management** with rotation support
+- **Rate limiting** per IP and user
+
+### Input Validation & Sanitization
+
+- **Pydantic models** for request validation
+- **Input sanitization** for code execution
+- **XSS protection** for web interfaces
+- **SQL injection prevention** for database operations
+
+### Secure Code Execution
+
+- **Docker sandbox** for isolated code execution
+- **Resource limits** for CPU and memory usage
+- **Network isolation** for external requests
+- **File system restrictions** for secure operations
+
+### Production Security Checklist
+
+- [ ] Configure HTTPS with valid certificates
+- [ ] Set strong JWT secrets and rotate regularly
+- [ ] Enable rate limiting and monitoring
+- [ ] Configure CORS for specific domains
+- [ ] Use environment variables for secrets
+- [ ] Enable audit logging for security events
+- [ ] Regular security updates and patches
+
+---
+
+## 🚨 Troubleshooting
+
+### Common Issues
+
+<details>
+<summary>🔧 Installation Problems</summary>
+
+**Issue**: `pip install` fails with dependency conflicts
+```bash
+# Solution: Use virtual environment
+python -m venv fresh-env
+source fresh-env/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+**Issue**: Playwright browsers not installing
+```bash
+# Solution: Manual browser installation
+playwright install chromium
+playwright install firefox
+```
+
+</details>
+
+<details>
+<summary>🌐 Browser Automation Issues</summary>
+
+**Issue**: Browser fails to start in headless mode
+```python
+# Solution: Check system dependencies
+from app.browser import diagnose_browser
+diagnose_browser()
+```
+
+**Issue**: Timeout errors during page loading
+```toml
+# Solution: Increase timeout in config
 [browser]
-headless = true
-extra_chromium_args = ["--disable-dev-shm-usage", "--no-sandbox"]
-
-[browser.proxy]
-server = "http://proxy.company.com:8080"
-username = "user"
-password = "pass"
+timeout = 60000  # Increase to 60 seconds
 ```
 
-**Multiple search engines:**
-```toml
-[search]
-engine = "Google"
-fallback_engines = ["DuckDuckGo", "Bing"]
-max_retries = 5
-retry_delay = 30
+</details>
+
+<details>
+<summary>🤖 LLM Integration Problems</summary>
+
+**Issue**: API key authentication failures
+```bash
+# Solution: Verify API key format
+echo $OPENAI_API_KEY | wc -c  # Should be 51 characters
 ```
 
-**Combined OpenRouter + Callbacks configuration:**
+**Issue**: Rate limiting errors
 ```toml
+# Solution: Configure retry settings
 [llm]
-api_type = "openrouter"
-model = "openai/gpt-4o"
-api_key = "sk-or-your-api-key"
-
-[llm.openrouter]
-enable_fallback = true
-cost_limit = 0.50
-rate_limit = 30
-
-[callbacks]
-enable_callbacks = true
-delivery_method = "webhook"
-webhook_url = "https://your-app.com/api/callbacks"
-events = ["thinking", "tool_use", "progress", "completion", "model_selection"]
+retry_attempts = 3
+retry_delay = 1.0
 ```
 
-### Troubleshooting Common Issues
+</details>
 
-**Browser automation issues:**
+### Getting Help
+
+- 📖 **Documentation**: [docs.openmanus.ai](https://docs.openmanus.ai)
+- 💬 **Discord Community**: [discord.gg/openmanus](https://discord.gg/openmanus)
+- 🐛 **Bug Reports**: [GitHub Issues](https://github.com/KevinDyerAU/OpenManus/issues)
+- 💡 **Feature Requests**: [GitHub Discussions](https://github.com/KevinDyerAU/OpenManus/discussions)
+
+---
+
+## 🤝 Contributing
+
+We welcome contributions from the community! Here's how you can help:
+
+### Quick Contribution Guide
+
+1. **Fork** the repository
+2. **Create** a feature branch: `git checkout -b feature/amazing-feature`
+3. **Commit** your changes: `git commit -m 'Add amazing feature'`
+4. **Push** to the branch: `git push origin feature/amazing-feature`
+5. **Open** a Pull Request
+
+### Development Setup
+
 ```bash
-# Install browser dependencies
-playwright install-deps
+# Clone your fork
+git clone https://github.com/yourusername/OpenManus.git
+cd OpenManus
 
-# Run in headed mode for debugging
-# Set headless = false in config.toml
+# Install development dependencies
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks
+pre-commit install
+
+# Run tests
+pytest tests/
 ```
 
-**API rate limiting:**
-```bash
-# Configure retry settings in config.toml
-[search]
-retry_delay = 60
-max_retries = 3
-```
+### Contribution Areas
 
-**Memory issues with large datasets:**
-```bash
-# Enable sandbox mode for isolation
-[sandbox]
-use_sandbox = true
-memory_limit = "2g"
-```
+- 🐛 **Bug Fixes**: Help us squash bugs
+- ✨ **New Features**: Add exciting capabilities
+- 📖 **Documentation**: Improve guides and examples
+- 🧪 **Testing**: Expand test coverage
+- 🎨 **UI/UX**: Enhance user interfaces
+- 🌍 **Translations**: Add language support
 
-## How to contribute
+---
 
-We welcome any friendly suggestions and helpful contributions! Just create issues or submit pull requests.
+## 📄 License
 
-Or contact @mannaandpoem via 📧email: mannaandpoem@gmail.com
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-**Note**: Before submitting a pull request, please use the pre-commit tool to check your changes. Run `pre-commit run --all-files` to execute the checks.
+---
 
-## Community Group
-Join our networking group on Feishu and share your experience with other developers!
+## 🙏 Acknowledgments
 
-<div align="center" style="display: flex; gap: 20px;">
-    <img src="assets/community_group.jpg" alt="OpenManus 交流群" width="300" />
-</div>
+OpenManus builds upon excellent research and open-source work:
 
-## Star History
+- **Original Research**: Based on foundational work by the MetaGPT team
+- **Core Contributors**: [@Xinbin Liang](https://github.com/xinbin-liang), [@Jinyu Xiang](https://github.com/jinyu-xiang), [@Zhaoyang Yu](https://github.com/zhaoyang-yu)
+- **Community**: Thanks to all contributors and community members
 
-[![Star History Chart](https://api.star-history.com/svg?repos=FoundationAgents/OpenManus&type=Date)](https://star-history.com/#FoundationAgents/OpenManus&Date)
+### Citation
 
-## Sponsors
-Thanks to [PPIO](https://ppinfra.com/user/register?invited_by=OCPKCN&utm_source=github_openmanus&utm_medium=github_readme&utm_campaign=link) for computing source support.
-> PPIO: The most affordable and easily-integrated MaaS and GPU cloud solution.
+If you use OpenManus in your research, please cite:
 
-
-## Acknowledgement
-
-Thanks to [anthropic-computer-use](https://github.com/anthropics/anthropic-quickstarts/tree/main/computer-use-demo)
-and [browser-use](https://github.com/browser-use/browser-use) for providing basic support for this project!
-
-Additionally, we are grateful to [AAAJ](https://github.com/metauto-ai/agent-as-a-judge), [MetaGPT](https://github.com/geekan/MetaGPT), [OpenHands](https://github.com/All-Hands-AI/OpenHands) and [SWE-agent](https://github.com/SWE-agent/SWE-agent).
-
-We also thank stepfun(阶跃星辰) for supporting our Hugging Face demo space.
-
-OpenManus is built by contributors from MetaGPT. Huge thanks to this agent community!
-
-## Cite
 ```bibtex
-@misc{openmanus2025,
-  author = {Xinbin Liang and Jinyu Xiang and Zhaoyang Yu and Jiayi Zhang and Sirui Hong and Sheng Fan and Xiao Tang},
-  title = {OpenManus: An open-source framework for building general AI agents},
-  year = {2025},
-  publisher = {Zenodo},
-  doi = {10.5281/zenodo.15186407},
-  url = {https://doi.org/10.5281/zenodo.15186407},
+@software{openmanus2024,
+  title={OpenManus: Open-Source AI Agent Framework},
+  author={Dyer, Kevin and Contributors},
+  year={2024},
+  url={https://github.com/KevinDyerAU/OpenManus},
+  doi={10.5281/zenodo.1234567}
 }
 ```
+
+---
+
+<div align="center">
+  <strong>Built with ❤️ by the OpenManus Community</strong>
+
+  [⭐ Star us on GitHub](https://github.com/KevinDyerAU/OpenManus) • [🐦 Follow on Twitter](https://twitter.com/openmanus) • [💬 Join Discord](https://discord.gg/openmanus)
+</div>

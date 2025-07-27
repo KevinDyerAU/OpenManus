@@ -1,0 +1,76 @@
+{
+  "servers": [
+    {
+      "server_id": "filesystem_server",
+      "name": "File System MCP Server",
+      "connection_type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server_filesystem"],
+      "timeout": 30,
+      "max_retries": 3,
+      "auto_reconnect": true,
+      "health_check_interval": 60,
+      "metadata": {
+        "description": "Provides file system operations",
+        "capabilities": ["read_file", "write_file", "list_directory"]
+      }
+    },
+    {
+      "server_id": "web_server",
+      "name": "Web Scraping MCP Server",
+      "connection_type": "sse",
+      "url": "http://localhost:8080/sse",
+      "timeout": 45,
+      "max_retries": 5,
+      "auto_reconnect": true,
+      "health_check_interval": 30,
+      "metadata": {
+        "description": "Provides web scraping and HTTP request capabilities",
+        "capabilities": ["fetch_url", "scrape_page", "extract_data"]
+      }
+    },
+    {
+      "server_id": "database_server",
+      "name": "Database MCP Server",
+      "connection_type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server_database", "--config", "/path/to/db/config.json"],
+      "env": {
+        "DB_HOST": "localhost",
+        "DB_PORT": "5432",
+        "DB_NAME": "openmanus"
+      },
+      "timeout": 60,
+      "max_retries": 2,
+      "auto_reconnect": true,
+      "health_check_interval": 120,
+      "metadata": {
+        "description": "Provides database query and management capabilities",
+        "capabilities": ["execute_query", "create_table", "backup_data"]
+      }
+    },
+    {
+      "server_id": "ai_tools_server",
+      "name": "AI Tools MCP Server",
+      "connection_type": "stdio",
+      "command": "python",
+      "args": ["-m", "mcp_server_ai_tools"],
+      "timeout": 120,
+      "max_retries": 3,
+      "auto_reconnect": true,
+      "health_check_interval": 90,
+      "metadata": {
+        "description": "Provides AI-powered analysis and processing tools",
+        "capabilities": ["analyze_text", "generate_summary", "classify_content"]
+      }
+    }
+  ],
+  "global_settings": {
+    "auto_discover": true,
+    "health_checks_enabled": true,
+    "metrics_enabled": true,
+    "default_timeout": 30,
+    "default_max_retries": 3,
+    "default_retry_delay": 1.0
+  }
+}
