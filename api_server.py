@@ -511,17 +511,13 @@ async def websocket_chat(websocket: WebSocket):
                                     log_text = message.record["message"]
                                     level = message.record["level"].name
                                     
-                                    print(f"DEBUG: websocket_sink called with level {level}: {log_text}")
-                                    
                                     # Only capture INFO and higher level messages to avoid spam
                                     if message.record["level"].no < 20:  # Below INFO level
-                                        print(f"DEBUG: Skipping message below INFO level: {level}")
                                         return
                                     
                                     # Format the message with emoji prefix for UI recognition
                                     formatted_message = f"🤖 [{level}] {log_text}"
                                     captured_logs.append(formatted_message)
-                                    print(f"DEBUG: Formatted message: {formatted_message}")
                                     
                                     # Create progress message for UI
                                     progress_msg = {
@@ -531,16 +527,12 @@ async def websocket_chat(websocket: WebSocket):
                                         "progress": 50  # Keep progress at 50% during execution
                                     }
                                     
-                                    # Fixed WebSocket sending with proper asyncio import
+                                    # Send WebSocket message via thread to avoid event loop conflicts
                                     try:
-                                        print(f"DEBUG: Attempting to send WebSocket message: {formatted_message}")
-                                        
-                                        # Import asyncio at function level to avoid scoping issues
                                         import asyncio
                                         import threading
                                         import json
                                         
-                                        # Use a simple queue-based approach that works reliably
                                         def send_websocket_message():
                                             try:
                                                 # Create a new event loop for this thread
@@ -551,10 +543,9 @@ async def websocket_chat(websocket: WebSocket):
                                                 loop.run_until_complete(
                                                     websocket.send_text(json.dumps(progress_msg))
                                                 )
-                                                print(f"DEBUG: Successfully sent WebSocket message: {formatted_message}")
                                                 
-                                            except Exception as thread_error:
-                                                print(f"DEBUG: Thread send failed: {thread_error}")
+                                            except Exception:
+                                                pass  # Silently handle WebSocket send errors
                                             finally:
                                                 try:
                                                     loop.close()
@@ -565,12 +556,9 @@ async def websocket_chat(websocket: WebSocket):
                                         thread = threading.Thread(target=send_websocket_message)
                                         thread.daemon = True
                                         thread.start()
-                                        print(f"DEBUG: Started WebSocket send thread for: {formatted_message}")
                                         
-                                    except Exception as ws_error:
-                                        print(f"DEBUG: WebSocket send error: {ws_error}")
-                                    
-                                    print(f"DEBUG: websocket_sink completed for: {formatted_message}")
+                                    except Exception:
+                                        pass  # Silently handle any WebSocket errors
                                     
                                 except Exception as e:
                                     print(f"Error in websocket_sink: {e}")
@@ -596,43 +584,29 @@ async def websocket_chat(websocket: WebSocket):
                             await websocket.send_text(json.dumps(startup_msg))
                             print("DEBUG: Sent startup confirmation message")
                             
-                            # Test the logging capture with a clear test message
+                            # Initialize agent thoughts streaming
                             logger.info("🚀 Manus agent starting - thoughts will stream to UI")
-                            print("DEBUG: Added Loguru sink for agent thoughts streaming")
                             
-                            # Execute the agent with enhanced error handling
+                            # Execute the agent
                             try:
                                 # Send a message indicating agent execution is starting
-                                print(f"DEBUG: About to send agent start message")
                                 logger.info(f"🎯 Starting to process: {chat_request.message[:100]}...")
-                                print(f"DEBUG: Sent agent start message")
-                                
-                                # Add a test message to verify sink is working
-                                print(f"DEBUG: About to send test message")
-                                logger.info("📝 Test message - verifying sink is active")
-                                print(f"DEBUG: Sent test message")
                                 
                                 # Run the agent
-                                print(f"DEBUG: About to run agent with message: {chat_request.message}")
                                 await agent.run(chat_request.message)
-                                print(f"DEBUG: Agent execution completed")
                                 
                                 # Send completion message
-                                print(f"DEBUG: About to send completion message")
                                 logger.info("✅ Agent execution completed successfully")
-                                print(f"DEBUG: Sent completion message")
                                 
                             except Exception as agent_error:
                                 logger.error(f"❌ Agent execution failed: {str(agent_error)}")
-                                print(f"DEBUG: Agent execution error: {agent_error}")
                                 raise
                             finally:
                                 # Always remove the custom Loguru sink
                                 try:
                                     logger.remove(sink_id)
-                                    print("DEBUG: Removed Loguru sink")
-                                except Exception as sink_error:
-                                    print(f"DEBUG: Error removing sink: {sink_error}")
+                                except Exception:
+                                    pass  # Silently handle sink removal errors
                             
                             update_progress(conv_id, "processing", "Finalizing results...", 90)
                             
