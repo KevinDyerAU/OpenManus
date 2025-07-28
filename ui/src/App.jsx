@@ -49,6 +49,11 @@ const MODELS = [
   { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },
   { id: 'google/gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash', provider: 'Google' },
   { id: 'meta-llama/llama-3.1-405b', name: 'Llama 3.1 405B', provider: 'Meta' },
+  { id: 'openrouter/openai/gpt-4o', name: 'GPT-4o (OpenRouter)', provider: 'OpenRouter' },
+  { id: 'openrouter/anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet (OpenRouter)', provider: 'OpenRouter' },
+  { id: 'openrouter/google/gemini-2.0-flash-exp', name: 'Gemini 2.0 Flash (OpenRouter)', provider: 'OpenRouter' },
+  { id: 'openrouter/meta-llama/llama-3.1-405b-instruct', name: 'Llama 3.1 405B (OpenRouter)', provider: 'OpenRouter' },
+  { id: 'openrouter/deepseek/deepseek-v3', name: 'DeepSeek V3 (OpenRouter)', provider: 'OpenRouter' },
 ]
 
 const TASK_TYPES = [
@@ -56,6 +61,7 @@ const TASK_TYPES = [
   { id: 'code_generation', name: 'Code Generation', icon: Code },
   { id: 'data_analysis', name: 'Data Analysis', icon: Activity },
   { id: 'web_browsing', name: 'Web Browsing', icon: Globe },
+  { id: 'manus_agent', name: 'Manus Agent', icon: Bot },
   { id: 'reasoning', name: 'Reasoning', icon: Brain },
   { id: 'creative_writing', name: 'Creative Writing', icon: Zap },
 ]
@@ -151,6 +157,28 @@ function App() {
             content: data.content,
             timestamp: new Date().toISOString()
           }])
+          setIsLoading(false)
+          setShowProgress(false)
+          setTaskProgress({})
+        } else if (data.type === 'progress') {
+          // Handle real-time progress updates
+          setShowProgress(true)
+          setTaskProgress({
+            status: data.status,
+            message: data.message,
+            progress: data.progress || 0
+          })
+          console.log('Progress update:', data.message, `${data.progress}%`)
+          
+          // If this is an agent thought (contains 🤖), add it as a persistent message
+          if (data.message && data.message.includes('🤖')) {
+            setMessages(prev => [...prev, {
+              id: Date.now() + Math.random(),
+              type: 'agent_thought',
+              content: data.message,
+              timestamp: new Date().toISOString()
+            }])
+          }
         } else if (data.type === 'callback') {
           setCallbackEvents(prev => [...prev, data])
           setCallbackStats(prev => ({
@@ -160,7 +188,10 @@ function App() {
           }))
         }
         
-        setIsLoading(false)
+        // Only set loading to false for final messages, not progress updates
+        if (data.type !== 'progress') {
+          setIsLoading(false)
+        }
       }
 
       wsRef.current.onclose = () => {
@@ -478,10 +509,34 @@ function App() {
                             >
                               {message.type !== 'user' && (
                                 <div className="flex-shrink-0">
-                                  {message.type === 'assistant' ? (
-                                    <Bot className="h-6 w-6 text-primary" />
-                                  ) : (
-                                    <AlertCircle className="h-6 w-6 text-destructive" />
+                                  {message.type === 'assistant' && (
+                                    <div className="flex-shrink-0">
+                                      {message.content.includes('🌐') ? (
+                                        <Globe className="h-6 w-6 text-blue-500" />
+                                      ) : message.content.includes('🤖') ? (
+                                        <Bot className="h-6 w-6 text-green-500" />
+                                      ) : message.content.includes('❌') ? (
+                                        <AlertCircle className="h-6 w-6 text-destructive" />
+                                      ) : (
+                                        <Bot className="h-6 w-6 text-primary" />
+                                      )}
+                                    </div>
+                                  )}
+                                  
+                                  {message.type === 'agent_thought' && (
+                                    <div className="flex-shrink-0">
+                                      <Bot className="h-5 w-5 text-purple-500" />
+                                    </div>
+                                  )}
+                                  
+                                  {message.type === 'error' && (
+                                    <div className="flex-shrink-0">
+                                      {message.content.includes('timeout') ? (
+                                        <Clock className="h-6 w-6 text-destructive" />
+                                      ) : (
+                                        <AlertCircle className="h-6 w-6 text-destructive" />
+                                      )}
+                                    </div>
                                   )}
                                 </div>
                               )}
@@ -492,6 +547,8 @@ function App() {
                                     ? 'bg-primary text-primary-foreground'
                                     : message.type === 'error'
                                     ? 'bg-destructive/10 text-destructive border border-destructive/20'
+                                    : message.type === 'agent_thought'
+                                    ? 'bg-purple-50 dark:bg-purple-900/20 text-purple-800 dark:text-purple-200 border border-purple-200 dark:border-purple-700'
                                     : 'bg-muted'
                                 }`}
                               >

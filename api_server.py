@@ -94,6 +94,9 @@ async def chat(request: ChatRequest):
         )
     
     try:
+        # Import LLM at the beginning to ensure it's available for all task types
+        from app.llm import LLM
+        
         # Get conversation ID
         conv_id = request.conversation_id or "default"
         task_type = request.task_type or 'general_chat'
@@ -111,63 +114,200 @@ async def chat(request: ChatRequest):
         conversation_history[conv_id].append(user_message)
         
         # Handle different task types with appropriate functionality
-        if task_type == 'web_browsing':
-            # Update progress
-            update_progress(conv_id, "processing", "Initializing web browsing capabilities...", 10)
+        if task_type == 'manus_agent':
+            # Use the full Manus agent (main.py functionality)
+            update_progress(conv_id, "processing", "Initializing Manus agent...", 10)
             
-            # For now, provide enhanced web browsing guidance with LLM
-            # TODO: Implement full Manus agent integration when browser setup is complete
-            if llm_instance is None:
+            try:
+                # Import the Manus agent and LLM
+                from app.agent.manus import Manus
+                from app.llm import LLM
+                
+                update_progress(conv_id, "processing", "Creating agent instance...", 20)
+                
+                # Create LLM instance with selected model
                 config_name = "default"
                 if request.model and request.model != "auto":
-                    config_name = request.model.replace("/", "_").replace("-", "_")
-                llm_instance = LLM(config_name=config_name)
-            
-            update_progress(conv_id, "processing", "Analyzing web research request...", 30)
-            
-            system_message = Message.system_message(
-                f"""🌐 WEB BROWSING MODE ACTIVATED 🌐
+                    # Handle different model formats
+                    if request.model.startswith("openrouter/"):
+                        config_name = "openrouter"
+                    elif "/" in request.model:
+                        # Format: provider/model -> provider_model
+                        config_name = request.model.replace("/", "_").replace("-", "_")
+                    else:
+                        config_name = request.model
                 
-                You are a specialized web research assistant. The user has requested: {request.message}
+                print(f"DEBUG: Creating Manus agent with LLM config: {config_name} for model: {request.model}")
+                custom_llm = LLM(config_name=config_name)
                 
-                IMPORTANT: Start your response with "🌐 WEB BROWSING TASK DETECTED" to clearly indicate this is different from regular chat.
+                # Create Manus agent instance with custom LLM
+                agent = await Manus.create(llm=custom_llm)
                 
-                Since you don't have direct web browsing capabilities in this response, please:
-                1. ✅ Acknowledge that this is a web browsing task (start with the indicator above)
-                2. 🎯 Explain what specific websites or sources would be most relevant
-                3. 🔍 Provide guidance on what information to look for
-                4. 📝 Suggest specific search terms or strategies
-                5. ⚡ Indicate that enhanced web browsing functionality is being implemented
+                update_progress(conv_id, "processing", "Processing your request...", 40)
                 
-                Be helpful and specific about the research approach. Format your response clearly with sections.
-                Note: Full automated web browsing capabilities with real-time web access are being implemented.
-                """
-            )
+                # Execute the agent with the user's prompt
+                # Set up real-time logging capture for HTTP mode
+                import io
+                import logging
+                from contextlib import redirect_stdout, redirect_stderr
+                
+                # Create a custom sink for Loguru to capture agent thoughts for HTTP
+                captured_logs = []
+                
+                def http_sink(message):
+                    try:
+                        # Extract the log message
+                        log_text = message.record["message"]
+                        level = message.record["level"].name
+                        
+                        # Format and store the message
+                        formatted_message = f"🤖 [{level}] {log_text}"
+                        captured_logs.append(formatted_message)
+                        print(f"DEBUG: Captured agent thought for HTTP: {formatted_message}")
+                        
+                    except Exception as e:
+                        print(f"Error capturing log for HTTP: {e}")
+                
+                # Add the custom sink to Loguru logger
+                from app.logger import logger
+                sink_id = logger.add(http_sink, level="INFO", format="{message}")
+                
+                # Capture stdout/stderr as well
+                stdout_capture = io.StringIO()
+                stderr_capture = io.StringIO()
+                
+                try:
+                    with redirect_stdout(stdout_capture), redirect_stderr(stderr_capture):
+                        await agent.run(request.message)
+                    
+                    # Get captured output
+                    agent_output = stdout_capture.getvalue()
+                    agent_errors = stderr_capture.getvalue()
+                    
+                finally:
+                    # Remove the custom Loguru sink
+                    logger.remove(sink_id)
+                
+                update_progress(conv_id, "processing", "Finalizing results...", 90)
+                
+                # Format the response - include captured agent thoughts
+                response_parts = []
+                
+                # Add agent thoughts if captured
+                if captured_logs:
+                    response_parts.append("🧠 **Agent Thoughts:**\n" + "\n".join(captured_logs))
+                
+                # Add main output
+                if agent_output.strip():
+                    response_parts.append(f"🤖 **Manus Agent Results:**\n{agent_output.strip()}")
+                elif agent_errors.strip():
+                    response_parts.append(f"🤖 **Manus Agent Output:**\n{agent_errors.strip()}")
+                else:
+                    response_parts.append(f"🤖 **Manus Agent:**\nTask completed successfully. The agent processed your request: '{request.message}'")
+                
+                response_content = "\n\n---\n\n".join(response_parts)
+                
+                # Clean up agent resources
+                await agent.cleanup()
+                    
+            except ImportError as e:
+                response_content = f"🤖 Manus agent not available: {str(e)}. Please ensure all dependencies are installed."
+                update_progress(conv_id, "error", "Manus agent unavailable", 100)
+            except Exception as e:
+                response_content = f"🤖 Manus agent error: {str(e)}. Please try again or contact support."
+                update_progress(conv_id, "error", "Manus agent failed", 100)
             
-            update_progress(conv_id, "processing", "Generating web research guidance...", 70)
+            update_progress(conv_id, "completed", "Manus agent completed", 100)
             
-            response_content = await llm_instance.ask(
-                messages=conversation_history[conv_id],
-                system_msgs=[system_message],
-                stream=False,
-                temperature=0.7
-            )
+        elif task_type == 'web_browsing':
+            # Update progress
+            update_progress(conv_id, "processing", "Initializing web browsing agent...", 10)
             
-            update_progress(conv_id, "completed", "Web research guidance completed", 100)
+            try:
+                # Import browser tool directly (Playwright-based)
+                from app.tool.browser_use_tool import BrowserUseTool
+                import asyncio
+                import re
+                
+                update_progress(conv_id, "processing", "Setting up browser...", 30)
+                
+                # Create browser tool instance
+                browser_tool = BrowserUseTool()
+                
+                update_progress(conv_id, "processing", "Navigating to website...", 50)
+                
+                # Extract URL from user message if present
+                url_match = re.search(r'https?://[^\s]+', request.message)
+                if url_match:
+                    url = url_match.group(0)
+                    
+                    # Navigate to the URL
+                    nav_result = await browser_tool.execute(
+                        action="go_to_url",
+                        url=url
+                    )
+                    
+                    update_progress(conv_id, "processing", "Extracting content...", 70)
+                    
+                    # Extract content based on user request
+                    extract_result = await browser_tool.execute(
+                        action="extract_content",
+                        goal=request.message
+                    )
+                    
+                    response_content = f"🌐 **Web Browsing Results for {url}**\n\n{extract_result.output}"
+                    
+                else:
+                    # If no URL found, perform web search
+                    search_result = await browser_tool.execute(
+                        action="web_search",
+                        query=request.message
+                    )
+                    
+                    update_progress(conv_id, "processing", "Analyzing search results...", 70)
+                    
+                    # Extract content from search results
+                    extract_result = await browser_tool.execute(
+                        action="extract_content",
+                        goal=f"Find information about: {request.message}"
+                    )
+                    
+                    response_content = f"🌐 **Web Search Results for '{request.message}'**\n\n{extract_result.output}"
+                
+                update_progress(conv_id, "completed", "Web browsing completed", 100)
+                
+            except asyncio.TimeoutError:
+                response_content = "🌐 Web browsing task timed out after 5 minutes. Please try a simpler request or break it into smaller parts."
+                update_progress(conv_id, "completed", "Web browsing timed out", 100)
+            except ImportError as e:
+                response_content = f"🌐 Web browsing agent not available: {str(e)}. Please ensure all dependencies are installed."
+                update_progress(conv_id, "error", "Web browsing agent unavailable", 100)
+            except Exception as e:
+                response_content = f"🌐 Web browsing error: {str(e)}. Please try again or contact support."
+                update_progress(conv_id, "error", "Web browsing failed", 100)
             
         elif task_type == 'code_generation':
             # Use enhanced LLM for code generation
-            if llm_instance is None:
-                config_name = "default"
-                if request.model and request.model != "auto":
+            # Always create new LLM instance to support model switching
+            config_name = "default"
+            if request.model and request.model != "auto":
+                # Handle different model formats
+                if request.model.startswith("openrouter/"):
+                    config_name = "openrouter"
+                elif "/" in request.model:
+                    # Format: provider/model -> provider_model
                     config_name = request.model.replace("/", "_").replace("-", "_")
-                llm_instance = LLM(config_name=config_name)
+                else:
+                    config_name = request.model
+            
+            print(f"DEBUG: Using LLM config: {config_name} for model: {request.model}")
+            current_llm = LLM(config_name=config_name)
             
             system_message = Message.system_message(
                 "You are an expert software developer and coding assistant. Help users write, debug, and optimize code. Provide clear explanations, follow best practices, and include comments in your code examples. Focus on writing clean, efficient, and maintainable code."
             )
             
-            response_content = await llm_instance.ask(
+            response_content = await current_llm.ask(
                 messages=conversation_history[conv_id],
                 system_msgs=[system_message],
                 stream=False,
@@ -199,11 +339,20 @@ async def chat(request: ChatRequest):
             
         else:
             # Use basic LLM for general chat, reasoning, and creative writing
-            if llm_instance is None:
-                config_name = "default"
-                if request.model and request.model != "auto":
+            # Always create new LLM instance to support model switching
+            config_name = "default"
+            if request.model and request.model != "auto":
+                # Handle different model formats
+                if request.model.startswith("openrouter/"):
+                    config_name = "openrouter"
+                elif "/" in request.model:
+                    # Format: provider/model -> provider_model
                     config_name = request.model.replace("/", "_").replace("-", "_")
-                llm_instance = LLM(config_name=config_name)
+                else:
+                    config_name = request.model
+            
+            print(f"DEBUG: Using LLM config: {config_name} for model: {request.model}")
+            current_llm = LLM(config_name=config_name)
             
             system_prompts = {
                 'general_chat': "You are a helpful AI assistant. Provide clear, concise, and helpful responses to user questions and requests. Engage in natural conversation and be friendly and informative.",
@@ -215,7 +364,7 @@ async def chat(request: ChatRequest):
                 system_prompts.get(task_type, system_prompts['general_chat'])
             )
             
-            response_content = await llm_instance.ask(
+            response_content = await current_llm.ask(
                 messages=conversation_history[conv_id],
                 system_msgs=[system_message],
                 stream=False,
@@ -245,6 +394,7 @@ async def chat(request: ChatRequest):
 @app.websocket("/ws/chat")
 async def websocket_chat(websocket: WebSocket):
     """WebSocket endpoint for streaming chat"""
+    global llm_instance  # Add global declaration
     await websocket.accept()
     
     try:
@@ -284,76 +434,382 @@ async def websocket_chat(websocket: WebSocket):
                     conversation_history[conv_id].append(user_message)
                     
                     # Handle different task types (same logic as HTTP endpoint)
-                    if task_type == 'web_browsing':
-                        # Update progress
-                        update_progress(conv_id, "processing", "Initializing web browsing capabilities...", 10)
+                    if task_type == 'manus_agent':
+                        # Use the full Manus agent (main.py functionality) with progress updates
+                        update_progress(conv_id, "processing", "Initializing Manus agent...", 10)
                         
                         # Send progress update via WebSocket
-                        await websocket.send_text(json.dumps({
+                        progress_msg = {
                             "type": "progress",
                             "status": "processing",
-                            "message": "Initializing web browsing capabilities...",
+                            "message": "Initializing Manus agent...",
                             "progress": 10
-                        }))
+                        }
+                        await websocket.send_text(json.dumps(progress_msg))
+                        print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
                         
-                        # For now, provide enhanced web browsing guidance with LLM
-                        if llm_instance is None:
+                        try:
+                            # Import the Manus agent and LLM
+                            from app.agent.manus import Manus
+                            from app.llm import LLM
+                            
+                            update_progress(conv_id, "processing", "Creating agent instance...", 20)
+                            
+                            # Send progress update via WebSocket
+                            progress_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "Creating agent instance...",
+                                "progress": 20
+                            }
+                            await websocket.send_text(json.dumps(progress_msg))
+                            print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
+                            
+                            # Create LLM instance with selected model
                             config_name = "default"
                             if chat_request.model and chat_request.model != "auto":
-                                config_name = chat_request.model.replace("/", "_").replace("-", "_")
-                            llm_instance = LLM(config_name=config_name)
+                                # Handle different model formats
+                                if chat_request.model.startswith("openrouter/"):
+                                    config_name = "openrouter"
+                                elif "/" in chat_request.model:
+                                    # Format: provider/model -> provider_model
+                                    config_name = chat_request.model.replace("/", "_").replace("-", "_")
+                                else:
+                                    config_name = chat_request.model
+                            
+                            print(f"DEBUG: Creating WebSocket Manus agent with LLM config: {config_name} for model: {chat_request.model}")
+                            custom_llm = LLM(config_name=config_name)
+                            
+                            # Create Manus agent instance with custom LLM
+                            agent = await Manus.create(llm=custom_llm)
+                            
+                            update_progress(conv_id, "processing", "Processing your request...", 40)
+                            
+                            # Send progress update via WebSocket
+                            progress_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "Processing your request...",
+                                "progress": 40
+                            }
+                            await websocket.send_text(json.dumps(progress_msg))
+                            print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
+                            
+                            # Execute the agent with the user's prompt
+                            # Set up real-time logging capture and streaming
+                            import io
+                            import sys
+                            import logging
+                            from contextlib import redirect_stdout, redirect_stderr
+                            
+                            # Create a custom sink for Loguru to capture agent thoughts
+                            captured_logs = []
+                            
+                            def websocket_sink(message):
+                                try:
+                                    # Extract the log message and level
+                                    log_text = message.record["message"]
+                                    level = message.record["level"].name
+                                    
+                                    print(f"DEBUG: websocket_sink called with level {level}: {log_text}")
+                                    
+                                    # Only capture INFO and higher level messages to avoid spam
+                                    if message.record["level"].no < 20:  # Below INFO level
+                                        print(f"DEBUG: Skipping message below INFO level: {level}")
+                                        return
+                                    
+                                    # Format the message with emoji prefix for UI recognition
+                                    formatted_message = f"🤖 [{level}] {log_text}"
+                                    captured_logs.append(formatted_message)
+                                    print(f"DEBUG: Formatted message: {formatted_message}")
+                                    
+                                    # Create progress message for UI
+                                    progress_msg = {
+                                        "type": "progress",
+                                        "status": "processing",
+                                        "message": formatted_message,
+                                        "progress": 50  # Keep progress at 50% during execution
+                                    }
+                                    
+                                    # Fixed WebSocket sending with proper asyncio import
+                                    try:
+                                        print(f"DEBUG: Attempting to send WebSocket message: {formatted_message}")
+                                        
+                                        # Import asyncio at function level to avoid scoping issues
+                                        import asyncio
+                                        import threading
+                                        import json
+                                        
+                                        # Use a simple queue-based approach that works reliably
+                                        def send_websocket_message():
+                                            try:
+                                                # Create a new event loop for this thread
+                                                loop = asyncio.new_event_loop()
+                                                asyncio.set_event_loop(loop)
+                                                
+                                                # Send the WebSocket message
+                                                loop.run_until_complete(
+                                                    websocket.send_text(json.dumps(progress_msg))
+                                                )
+                                                print(f"DEBUG: Successfully sent WebSocket message: {formatted_message}")
+                                                
+                                            except Exception as thread_error:
+                                                print(f"DEBUG: Thread send failed: {thread_error}")
+                                            finally:
+                                                try:
+                                                    loop.close()
+                                                except:
+                                                    pass
+                                        
+                                        # Start the sending thread
+                                        thread = threading.Thread(target=send_websocket_message)
+                                        thread.daemon = True
+                                        thread.start()
+                                        print(f"DEBUG: Started WebSocket send thread for: {formatted_message}")
+                                        
+                                    except Exception as ws_error:
+                                        print(f"DEBUG: WebSocket send error: {ws_error}")
+                                    
+                                    print(f"DEBUG: websocket_sink completed for: {formatted_message}")
+                                    
+                                except Exception as e:
+                                    print(f"Error in websocket_sink: {e}")
+                                    import traceback
+                                    traceback.print_exc()
+                            
+                            # Add the custom sink to Loguru logger
+                            from app.logger import logger
+                            sink_id = logger.add(
+                                websocket_sink, 
+                                level="INFO", 
+                                format="{message}",
+                                enqueue=True  # Enable thread-safe enqueueing
+                            )
+                            
+                            # Send startup confirmation message
+                            startup_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "🤖 [INFO] Agent thoughts streaming initialized - starting execution",
+                                "progress": 45
+                            }
+                            await websocket.send_text(json.dumps(startup_msg))
+                            print("DEBUG: Sent startup confirmation message")
+                            
+                            # Test the logging capture with a clear test message
+                            logger.info("🚀 Manus agent starting - thoughts will stream to UI")
+                            print("DEBUG: Added Loguru sink for agent thoughts streaming")
+                            
+                            # Execute the agent with enhanced error handling
+                            try:
+                                # Send a message indicating agent execution is starting
+                                print(f"DEBUG: About to send agent start message")
+                                logger.info(f"🎯 Starting to process: {chat_request.message[:100]}...")
+                                print(f"DEBUG: Sent agent start message")
+                                
+                                # Add a test message to verify sink is working
+                                print(f"DEBUG: About to send test message")
+                                logger.info("📝 Test message - verifying sink is active")
+                                print(f"DEBUG: Sent test message")
+                                
+                                # Run the agent
+                                print(f"DEBUG: About to run agent with message: {chat_request.message}")
+                                await agent.run(chat_request.message)
+                                print(f"DEBUG: Agent execution completed")
+                                
+                                # Send completion message
+                                print(f"DEBUG: About to send completion message")
+                                logger.info("✅ Agent execution completed successfully")
+                                print(f"DEBUG: Sent completion message")
+                                
+                            except Exception as agent_error:
+                                logger.error(f"❌ Agent execution failed: {str(agent_error)}")
+                                print(f"DEBUG: Agent execution error: {agent_error}")
+                                raise
+                            finally:
+                                # Always remove the custom Loguru sink
+                                try:
+                                    logger.remove(sink_id)
+                                    print("DEBUG: Removed Loguru sink")
+                                except Exception as sink_error:
+                                    print(f"DEBUG: Error removing sink: {sink_error}")
+                            
+                            update_progress(conv_id, "processing", "Finalizing results...", 90)
+                            
+                            # Send progress update via WebSocket
+                            progress_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "Finalizing results...",
+                                "progress": 90
+                            }
+                            await websocket.send_text(json.dumps(progress_msg))
+                            print(f"DEBUG: Captured {len(captured_logs)} agent thoughts during execution")
+                            
+                            # Send final summary of captured thoughts
+                            if captured_logs:
+                                summary_msg = {
+                                    "type": "progress",
+                                    "status": "processing",
+                                    "message": f"🤖 [INFO] Captured {len(captured_logs)} agent thoughts during execution",
+                                    "progress": 85
+                                }
+                                await websocket.send_text(json.dumps(summary_msg))
+                                print(f"DEBUG: Sent summary of {len(captured_logs)} captured thoughts")
+                            
+                            # Format the response
+                            if agent_output.strip():
+                                response_content = f"🤖 **Manus Agent Results**\n\n{agent_output.strip()}"
+                            elif agent_errors.strip():
+                                response_content = f"🤖 **Manus Agent Output**\n\n{agent_errors.strip()}"
+                            else:
+                                response_content = f"🤖 **Manus Agent**\n\nTask completed successfully. The agent processed your request: '{chat_request.message}'"
+                            
+                            # Clean up agent resources
+                            await agent.cleanup()
+                                
+                        except ImportError as e:
+                            response_content = f"🤖 Manus agent not available: {str(e)}. Please ensure all dependencies are installed."
+                            update_progress(conv_id, "error", "Manus agent unavailable", 100)
+                        except Exception as e:
+                            response_content = f"🤖 Manus agent error: {str(e)}. Please try again or contact support."
+                            update_progress(conv_id, "error", "Manus agent failed", 100)
                         
-                        update_progress(conv_id, "processing", "Analyzing web research request...", 30)
-                        await websocket.send_text(json.dumps({
+                        update_progress(conv_id, "completed", "Manus agent completed", 100)
+                        
+                    elif task_type == 'web_browsing':
+                        # Update progress
+                        update_progress(conv_id, "processing", "Initializing web browsing agent...", 10)
+                        
+                        # Send progress update via WebSocket with debug logging
+                        progress_msg = {
                             "type": "progress",
                             "status": "processing",
-                            "message": "Analyzing web research request...",
-                            "progress": 30
-                        }))
+                            "message": "Initializing web browsing agent...",
+                            "progress": 10
+                        }
+                        await websocket.send_text(json.dumps(progress_msg))
+                        print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
                         
-                        system_message = Message.system_message(
-                            f"""🌐 WEB BROWSING MODE ACTIVATED 🌐
+                        try:
+                            # Import browser tool directly (Playwright-based)
+                            from app.tool.browser_use_tool import BrowserUseTool
+                            import asyncio
+                            import re
                             
-                            You are a specialized web research assistant. The user has requested: {chat_request.message}
+                            update_progress(conv_id, "processing", "Setting up browser...", 30)
                             
-                            IMPORTANT: Start your response with "🌐 WEB BROWSING TASK DETECTED" to clearly indicate this is different from regular chat.
+                            # Send progress update via WebSocket with debug logging
+                            progress_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "Setting up browser...",
+                                "progress": 30
+                            }
+                            await websocket.send_text(json.dumps(progress_msg))
+                            print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
                             
-                            Since you don't have direct web browsing capabilities in this response, please:
-                            1. ✅ Acknowledge that this is a web browsing task (start with the indicator above)
-                            2. 🎯 Explain what specific websites or sources would be most relevant
-                            3. 🔍 Provide guidance on what information to look for
-                            4. 📝 Suggest specific search terms or strategies
-                            5. ⚡ Indicate that enhanced web browsing functionality is being implemented
+                            # Create browser tool instance
+                            browser_tool = BrowserUseTool()
                             
-                            Be helpful and specific about the research approach. Format your response clearly with sections.
-                            Note: Full automated web browsing capabilities with real-time web access are being implemented.
-                            """
-                        )
-                        
-                        update_progress(conv_id, "processing", "Generating web research guidance...", 70)
-                        await websocket.send_text(json.dumps({
-                            "type": "progress",
-                            "status": "processing",
-                            "message": "Generating web research guidance...",
-                            "progress": 70
-                        }))
-                        
-                        response_content = await llm_instance.ask(
-                            messages=conversation_history[conv_id],
-                            system_msgs=[system_message],
-                            stream=False,
-                            temperature=0.7
-                        )
-                        
-                        update_progress(conv_id, "completed", "Web research guidance completed", 100)
+                            update_progress(conv_id, "processing", "Navigating to website...", 50)
+                            
+                            # Send progress update via WebSocket with debug logging
+                            progress_msg = {
+                                "type": "progress",
+                                "status": "processing",
+                                "message": "Navigating to website...",
+                                "progress": 50
+                            }
+                            await websocket.send_text(json.dumps(progress_msg))
+                            print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
+                            
+                            # Extract URL from user message if present
+                            url_match = re.search(r'https?://[^\s]+', chat_request.message)
+                            if url_match:
+                                url = url_match.group(0)
+                                
+                                # Navigate to the URL
+                                nav_result = await browser_tool.execute(
+                                    action="go_to_url",
+                                    url=url
+                                )
+                                
+                                update_progress(conv_id, "processing", "Extracting content...", 70)
+                                
+                                # Send progress update via WebSocket
+                                progress_msg = {
+                                    "type": "progress",
+                                    "status": "processing",
+                                    "message": "Extracting content...",
+                                    "progress": 70
+                                }
+                                await websocket.send_text(json.dumps(progress_msg))
+                                print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
+                                
+                                # Extract content based on user request
+                                extract_result = await browser_tool.execute(
+                                    action="extract_content",
+                                    goal=chat_request.message
+                                )
+                                
+                                response_content = f"🌐 **Web Browsing Results for {url}**\n\n{extract_result.output}"
+                                
+                            else:
+                                # If no URL found, perform web search
+                                search_result = await browser_tool.execute(
+                                    action="web_search",
+                                    query=chat_request.message
+                                )
+                                
+                                update_progress(conv_id, "processing", "Analyzing search results...", 70)
+                                
+                                # Send progress update via WebSocket
+                                progress_msg = {
+                                    "type": "progress",
+                                    "status": "processing",
+                                    "message": "Analyzing search results...",
+                                    "progress": 70
+                                }
+                                await websocket.send_text(json.dumps(progress_msg))
+                                print(f"DEBUG: Sent progress update via WebSocket: {progress_msg}")
+                                
+                                # Extract content from search results
+                                extract_result = await browser_tool.execute(
+                                    action="extract_content",
+                                    goal=f"Find information about: {chat_request.message}"
+                                )
+                                
+                                response_content = f"🌐 **Web Search Results for '{chat_request.message}'**\n\n{extract_result.output}"
+                            
+                            update_progress(conv_id, "completed", "Web browsing completed", 100)
+                            
+                        except asyncio.TimeoutError:
+                            response_content = "🌐 Web browsing task timed out after 5 minutes. Please try a simpler request or break it into smaller parts."
+                            update_progress(conv_id, "completed", "Web browsing timed out", 100)
+                        except ImportError as e:
+                            response_content = f"🌐 Web browsing agent not available: {str(e)}. Please ensure all dependencies are installed."
+                            update_progress(conv_id, "error", "Web browsing agent unavailable", 100)
+                        except Exception as e:
+                            response_content = f"🌐 Web browsing error: {str(e)}. Please try again or contact support."
+                            update_progress(conv_id, "error", "Web browsing failed", 100)
                         
                     else:
                         # Handle other task types with basic LLM
-                        if llm_instance is None:
-                            config_name = "default"
-                            if chat_request.model and chat_request.model != "auto":
+                        # Always create new LLM instance to support model switching
+                        config_name = "default"
+                        if chat_request.model and chat_request.model != "auto":
+                            # Handle different model formats
+                            if chat_request.model.startswith("openrouter/"):
+                                config_name = "openrouter"
+                            elif "/" in chat_request.model:
+                                # Format: provider/model -> provider_model
                                 config_name = chat_request.model.replace("/", "_").replace("-", "_")
-                            llm_instance = LLM(config_name=config_name)
+                            else:
+                                config_name = chat_request.model
+                        
+                        print(f"DEBUG: WebSocket using LLM config: {config_name} for model: {chat_request.model}")
+                        current_llm = LLM(config_name=config_name)
                         
                         system_prompts = {
                             'general_chat': "You are a helpful AI assistant. Provide clear, concise, and helpful responses to user questions and requests. Engage in natural conversation and be friendly and informative.",
@@ -366,7 +822,7 @@ async def websocket_chat(websocket: WebSocket):
                             system_prompts.get(task_type, system_prompts['general_chat'])
                         )
                         
-                        response_content = await llm_instance.ask(
+                        response_content = await current_llm.ask(
                             messages=conversation_history[conv_id],
                             system_msgs=[system_message],
                             stream=False,
@@ -383,8 +839,8 @@ async def websocket_chat(websocket: WebSocket):
                     
                     # Send response via WebSocket
                     await websocket.send_text(json.dumps({
-                        "type": "response",
-                        "response": response_content,
+                        "type": "message",
+                        "content": response_content,
                         "conversation_id": conv_id,
                         "model": chat_request.model or "auto",
                         "task_type": task_type,

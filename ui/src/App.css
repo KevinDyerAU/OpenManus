@@ -169,6 +169,75 @@
   }
 }
 
+/* Fix dropdown visibility and transparency issues */
+[data-radix-select-content] {
+  z-index: 9999 !important;
+  position: fixed !important;
+  background-color: hsl(var(--popover)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+}
+
+[data-radix-popper-content-wrapper] {
+  z-index: 9999 !important;
+}
+
+/* Ensure select triggers don't create stacking context issues */
+[data-radix-select-trigger] {
+  position: relative;
+  z-index: 1;
+}
+
+/* Override any conflicting z-index values */
+.radix-select-content {
+  z-index: 9999 !important;
+  background-color: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+/* Fix dropdown item backgrounds and text */
+[data-radix-select-item] {
+  background-color: transparent !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+[data-radix-select-item][data-highlighted] {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
+}
+
+/* Ensure proper contrast in both light and dark modes */
+:root [data-radix-select-content] {
+  background-color: white !important;
+  color: #1a1a1a !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+}
+
+.dark [data-radix-select-content] {
+  background-color: #2a2a2a !important;
+  color: #ffffff !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3) !important;
+}
+
+:root [data-radix-select-item] {
+  color: #1a1a1a !important;
+}
+
+.dark [data-radix-select-item] {
+  color: #ffffff !important;
+}
+
+:root [data-radix-select-item][data-highlighted] {
+  background-color: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.dark [data-radix-select-item][data-highlighted] {
+  background-color: #374151 !important;
+  color: #ffffff !important;
+}
+
 /* Improved message spacing */
 .message-content {
   line-height: 1.6;
