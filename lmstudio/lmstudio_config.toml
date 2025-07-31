@@ -1,0 +1,97 @@
+# LM Studio Configuration for OpenManus
+# This file configures the LM Studio provider for local LLM inference
+
+[lmstudio]
+# Server connection settings
+host = "localhost"
+port = 1234
+timeout = 300
+max_retries = 3
+retry_delay = 1.0
+
+# Default model settings
+default_model = "llama-3.2-1b-instruct"
+fallback_models = [
+    "llama-3.2-3b-instruct",
+    "qwen2.5-7b-instruct"
+]
+
+# Default inference parameters
+temperature = 0.7
+max_tokens = 2048
+top_p = 0.9
+top_k = 40
+repeat_penalty = 1.1
+
+# Model loading parameters
+context_length = 8192
+gpu_offload_ratio = 1.0  # 1.0 = full GPU, 0.0 = CPU only
+cpu_threads = 4
+
+# Provider settings
+enabled = true
+priority = 5  # Lower number = higher priority
+rate_limit = 60  # requests per minute
+concurrent_requests = 4
+
+# Monitoring and logging
+enable_metrics = true
+log_requests = true
+log_responses = false  # Set to true for debugging
+performance_tracking = true
+
+# Model management
+auto_load_models = true
+model_cache_size = 3
+unload_inactive_models = true
+inactive_timeout = 1800  # 30 minutes
+
+# Security settings
+require_authentication = false
+allowed_hosts = ["localhost", "127.0.0.1"]
+enable_cors = true
+
+# Advanced settings
+streaming_chunk_size = 1024
+response_timeout = 120
+health_check_interval = 30
+enable_speculative_decoding = false
+
+# Model-specific configurations
+[lmstudio.models."llama-3.2-1b-instruct"]
+temperature = 0.7
+max_tokens = 2048
+context_length = 8192
+description = "Fast and efficient instruction-following model"
+
+[lmstudio.models."llama-3.2-3b-instruct"]
+temperature = 0.6
+max_tokens = 4096
+context_length = 8192
+description = "Balanced performance and capability model"
+
+[lmstudio.models."qwen2.5-7b-instruct"]
+temperature = 0.5
+max_tokens = 4096
+context_length = 32768
+description = "High-capability multilingual model"
+
+# Environment-specific overrides
+[lmstudio.development]
+log_level = "DEBUG"
+log_requests = true
+log_responses = true
+enable_metrics = true
+
+[lmstudio.production]
+log_level = "INFO"
+log_requests = false
+log_responses = false
+enable_metrics = true
+rate_limit = 120
+
+[lmstudio.testing]
+log_level = "WARNING"
+timeout = 60
+max_retries = 1
+

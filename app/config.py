@@ -26,8 +26,11 @@ class LLMSettings(BaseModel):
         description="Maximum input tokens to use across all requests (None for unlimited)",
     )
     temperature: float = Field(1.0, description="Sampling temperature")
-    api_type: str = Field(..., description="Azure, Openai, or Ollama")
+    api_type: str = Field(..., description="Azure, Openai, Ollama, or lmstudio")
     api_version: str = Field(..., description="Azure Openai version if AzureOpenai")
+    # LM Studio specific fields
+    host: Optional[str] = Field("localhost", description="LM Studio server host")
+    port: Optional[int] = Field(1234, description="LM Studio server port")
 
 
 class ProxySettings(BaseModel):

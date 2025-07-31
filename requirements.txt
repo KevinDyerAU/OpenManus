@@ -12,6 +12,9 @@ loguru>=0.7.3,<1.0.0
 numpy>=1.24.0,<2.0.0
 tiktoken>=0.9.0,<1.0.0
 
+# Local LLM support
+lmstudio>=0.2.30,<1.0.0
+
 # Web and browser automation (from original)
 html2text>=2024.2.26,<2025.0.0
 gymnasium>=1.1.1,<2.0.0

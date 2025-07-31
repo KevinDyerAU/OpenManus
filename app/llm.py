@@ -30,6 +30,16 @@ from app.schema import (
     ToolChoice,
 )
 
+# Import LM Studio provider
+try:
+    from app.providers.lmstudio_provider import LMStudioProvider, LMStudioConfig
+    LMSTUDIO_AVAILABLE = True
+except ImportError:
+    LMStudioProvider = None
+    LMStudioConfig = None
+    LMSTUDIO_AVAILABLE = False
+    logger.warning("LM Studio provider not available. Install lmstudio package to enable local LLM support.")
+
 
 REASONING_MODELS = ["o1", "o3-mini"]
 MULTIMODAL_MODELS = [
@@ -221,6 +231,20 @@ class LLM:
                 )
             elif self.api_type == "aws":
                 self.client = BedrockClient()
+            elif self.api_type == "lmstudio":
+                if LMSTUDIO_AVAILABLE:
+                    # Create LM Studio configuration from LLM settings
+                    lmstudio_config = LMStudioConfig(
+                        host=getattr(llm_config, 'host', 'localhost'),
+                        port=getattr(llm_config, 'port', 1234),
+                        default_model=self.model,
+                        temperature=self.temperature,
+                        max_tokens=self.max_tokens
+                    )
+                    self.client = LMStudioProvider(lmstudio_config)
+                    logger.info(f"Initialized LM Studio provider with model: {self.model}")
+                else:
+                    raise ImportError("LM Studio provider not available. Install lmstudio package.")
             else:
                 self.client = AsyncOpenAI(api_key=self.api_key, base_url=self.base_url)
 
@@ -433,39 +457,89 @@ class LLM:
                     temperature if temperature is not None else self.temperature
                 )
 
-            if not stream:
-                # Non-streaming request
-                response = await self.client.chat.completions.create(
-                    **params, stream=False
-                )
+            # Handle LM Studio provider differently
+            if self.api_type == "lmstudio":
+                if not stream:
+                    # Non-streaming request for LM Studio
+                    response = await self.client.chat_completion(
+                        messages=messages,
+                        model=self.model,
+                        temperature=temperature if temperature is not None else self.temperature,
+                        max_tokens=self.max_tokens,
+                        stream=False
+                    )
+                    
+                    if not response.content:
+                        raise ValueError("Empty or invalid response from LM Studio")
+                    
+                    # Update token counts (estimate for LM Studio)
+                    estimated_completion_tokens = self.count_tokens(response.content)
+                    self.update_token_count(input_tokens, estimated_completion_tokens)
+                    
+                    return response.content
+                else:
+                    # Streaming request for LM Studio
+                    self.update_token_count(input_tokens)
+                    
+                    streaming_response = await self.client.stream_completion(
+                        messages=messages,
+                        model=self.model,
+                        temperature=temperature if temperature is not None else self.temperature,
+                        max_tokens=self.max_tokens
+                    )
+                    
+                    collected_messages = []
+                    completion_text = ""
+                    async for chunk in streaming_response.content_generator:
+                        collected_messages.append(chunk)
+                        completion_text += chunk
+                        print(chunk, end="", flush=True)
+                    
+                    print()  # Newline after streaming
+                    full_response = "".join(collected_messages).strip()
+                    if not full_response:
+                        raise ValueError("Empty response from streaming LM Studio")
+                    
+                    # Estimate completion tokens for streaming response
+                    completion_tokens = self.count_tokens(completion_text)
+                    self.total_completion_tokens += completion_tokens
+                    
+                    return full_response
+            else:
+                # Handle OpenAI, Azure, AWS providers
+                if not stream:
+                    # Non-streaming request
+                    response = await self.client.chat.completions.create(
+                        **params, stream=False
+                    )
 
-                if not response.choices or not response.choices[0].message.content:
-                    raise ValueError("Empty or invalid response from LLM")
+                    if not response.choices or not response.choices[0].message.content:
+                        raise ValueError("Empty or invalid response from LLM")
 
-                # Update token counts
-                self.update_token_count(
-                    response.usage.prompt_tokens, response.usage.completion_tokens
-                )
+                    # Update token counts
+                    self.update_token_count(
+                        response.usage.prompt_tokens, response.usage.completion_tokens
+                    )
 
-                return response.choices[0].message.content
+                    return response.choices[0].message.content
 
-            # Streaming request, For streaming, update estimated token count before making the request
-            self.update_token_count(input_tokens)
+                # Streaming request, For streaming, update estimated token count before making the request
+                self.update_token_count(input_tokens)
 
-            response = await self.client.chat.completions.create(**params, stream=True)
+                response = await self.client.chat.completions.create(**params, stream=True)
 
-            collected_messages = []
-            completion_text = ""
-            async for chunk in response:
-                chunk_message = chunk.choices[0].delta.content or ""
-                collected_messages.append(chunk_message)
-                completion_text += chunk_message
-                print(chunk_message, end="", flush=True)
+                collected_messages = []
+                completion_text = ""
+                async for chunk in response:
+                    chunk_message = chunk.choices[0].delta.content or ""
+                    collected_messages.append(chunk_message)
+                    completion_text += chunk_message
+                    print(chunk_message, end="", flush=True)
 
-            print()  # Newline after streaming
-            full_response = "".join(collected_messages).strip()
-            if not full_response:
-                raise ValueError("Empty response from streaming LLM")
+                print()  # Newline after streaming
+                full_response = "".join(collected_messages).strip()
+                if not full_response:
+                    raise ValueError("Empty response from streaming LLM")
 
             # estimate completion tokens for streaming response
             completion_tokens = self.count_tokens(completion_text)

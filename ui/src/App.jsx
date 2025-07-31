@@ -44,6 +44,7 @@ const WS_URL = import.meta.env.VITE_WS_URL || 'ws://localhost:8000/ws/chat'
 // Available models and task types
 const MODELS = [
   { id: 'auto', name: 'Auto Select (Recommended)', provider: 'OpenManus' },
+  { id: 'lmstudio/deepseek/deepseek-r1-0528-qwen3-8b', name: 'DeepSeek R1 8B (Local)', provider: 'LM Studio' },
   { id: 'openai/gpt-4o', name: 'GPT-4o', provider: 'OpenAI' },
   { id: 'openai/gpt-4o-mini', name: 'GPT-4o Mini', provider: 'OpenAI' },
   { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet', provider: 'Anthropic' },

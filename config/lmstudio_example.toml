@@ -1,0 +1,39 @@
+# LM Studio Configuration Example for OpenManus
+# Copy this file to config.toml and modify the [llm] section to use LM Studio
+
+[llm]
+# LM Studio provider configuration
+[llm.lmstudio]
+model = "deepseek/deepseek-r1-0528-qwen3-8b"  # Model name in LM Studio
+base_url = "http://localhost:1234/v1"  # LM Studio API endpoint
+api_key = "not-needed"  # LM Studio doesn't require API key
+max_tokens = 2048
+temperature = 0.7
+api_type = "lmstudio"
+api_version = "v1"
+host = "localhost"  # LM Studio server host
+port = 1234  # LM Studio server port
+
+# You can also configure multiple LM Studio instances
+[llm.lmstudio_alt]
+model = "qwen2.5-7b-instruct"
+base_url = "http://localhost:1235/v1"
+api_key = "not-needed"
+max_tokens = 4096
+temperature = 0.8
+api_type = "lmstudio"
+api_version = "v1"
+host = "localhost"
+port = 1235
+
+# Default LLM configuration - set this to use LM Studio by default
+[llm.default]
+model = "deepseek/deepseek-r1-0528-qwen3-8b"
+base_url = "http://localhost:1234/v1"
+api_key = "not-needed"
+max_tokens = 2048
+temperature = 0.7
+api_type = "lmstudio"
+api_version = "v1"
+host = "localhost"
+port = 1234
